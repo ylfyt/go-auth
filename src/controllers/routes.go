@@ -4,16 +4,18 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"go-auth/src/ctx"
+	"go-auth/src/dtos"
 	"go-auth/src/middlewares"
+
+	"github.com/gorilla/mux"
 )
 
-func Home(r *http.Request) ResponseDTO {
+func Home(r *http.Request) dtos.Response {
 	return getSuccessResponse("ok")
 }
 
-func Ping(r *http.Request) ResponseDTO {
+func Ping(r *http.Request) dtos.Response {
 	userId := r.Context().Value(ctx.TokenPayloadCtxKey)
 	fmt.Println("Data:", userId)
 	return getErrorResponse(http.StatusBadRequest, userId.(string))

@@ -10,7 +10,7 @@ import (
 	"net/http"
 )
 
-func Register(r *http.Request) ResponseDTO {
+func Register(r *http.Request) dtos.Response {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		return getErrorResponse(http.StatusBadRequest, "Failed to get request body")

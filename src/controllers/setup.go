@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"go-auth/src/dtos"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -12,19 +13,12 @@ type Route struct {
 	Name        string
 	Method      string
 	Pattern     string
-	HandlerFunc func(r *http.Request) ResponseDTO
+	HandlerFunc func(r *http.Request) dtos.Response
 	Middlewares []mux.MiddlewareFunc
 }
 
-type ResponseDTO struct {
-	Status  int         `json:"status"`
-	Message string      `json:"message"`
-	Success bool        `json:"success"`
-	Data    interface{} `json:"data"`
-}
-
-func getSuccessResponse(data interface{}) ResponseDTO {
-	return ResponseDTO{
+func getSuccessResponse(data interface{}) dtos.Response {
+	return dtos.Response{
 		Status:  http.StatusOK,
 		Message: "",
 		Success: true,
@@ -32,8 +26,8 @@ func getSuccessResponse(data interface{}) ResponseDTO {
 	}
 }
 
-func getErrorResponse(statusCode int, message string) ResponseDTO {
-	return ResponseDTO{
+func getErrorResponse(statusCode int, message string) dtos.Response {
+	return dtos.Response{
 		Status:  statusCode,
 		Message: message,
 		Success: false,
