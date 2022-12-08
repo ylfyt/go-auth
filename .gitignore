@@ -1,0 +1,14 @@
+# Binary
+out
+temp
+go-auth
+config.bin
+
+# Log File
+*.log
+
+
+app/dist/*
+!app/dist/README.md
+
+.env
