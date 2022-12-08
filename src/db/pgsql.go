@@ -90,6 +90,24 @@ func (me DbConnection) WriteQuery(query string, params ...interface{}) (int64, e
 	return affectedRows, err
 }
 
+func (me DbConnection) GetRowCount(query string, params ...interface{}) (int, error) {
+	rows, err := me.sqlDb.Query(query, params...)
+
+	if err != nil {
+		return 0, err
+	}
+	defer rows.Close()
+
+	count := 0
+	for rows.Next() {
+		err := rows.Scan(&count)
+		if err != nil {
+			return 0, err
+		}
+	}
+	return count, nil
+}
+
 func (me DbConnection) GetValue(query string, params ...interface{}) (interface{}, error) {
 	rows, err := me.sqlDb.Query(query, params...)
 	if err != nil {

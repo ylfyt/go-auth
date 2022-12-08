@@ -38,14 +38,15 @@ func Register(r *http.Request) dtos.Response {
 	}
 	defer db.ReturnDbConnection(conn)
 
-	exists, err := conn.GetValue(`
+	exists, err := conn.GetRowCount(`
 		SELECT count(*) FROM users WHERE username = $1
 	`, data.Username)
-	if err != nil || exists == nil {
+	if err != nil {
+		fmt.Println("Error", err)
 		return getErrorResponse(http.StatusInternalServerError, "Something wrong")
 	}
 
-	if exists.(string) != "0" {
+	if exists != 0 {
 		return getErrorResponse(http.StatusBadRequest, "Username already exist")
 	}
 
