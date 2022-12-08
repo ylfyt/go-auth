@@ -30,7 +30,6 @@ func Register(r *http.Request) dtos.Response {
 
 	if len(data.Password) < 4 {
 		return getErrorResponse(http.StatusBadRequest, "Password should be > 4")
-
 	}
 
 	conn, err := db.BorrowDbConnection()
@@ -38,6 +37,17 @@ func Register(r *http.Request) dtos.Response {
 		return getErrorResponse(http.StatusInternalServerError, "Something wrong!")
 	}
 	defer db.ReturnDbConnection(conn)
+
+	exists, err := conn.GetValue(`
+		SELECT count(*) FROM users WHERE username = $1
+	`, data.Username)
+	if err != nil || exists == nil {
+		return getErrorResponse(http.StatusInternalServerError, "Something wrong")
+	}
+
+	if exists.(string) != "0" {
+		return getErrorResponse(http.StatusBadRequest, "Username already exist")
+	}
 
 	user := models.User{
 		Id:       uuid.New(),
