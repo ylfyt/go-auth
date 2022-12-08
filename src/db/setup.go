@@ -1,11 +1,16 @@
 package db
 
-import "database/sql"
+import (
+	"database/sql"
+	"fmt"
+	"go-auth/src/config"
+	_ "github.com/lib/pq"
+)
 
 const MAX_DB_CONN = 50
 
 type DbConnection struct {
-	Id int
+	Id    int
 	SqlDb *sql.DB
 }
 
@@ -19,13 +24,23 @@ func init() {
 	}
 }
 
-func BorrowDbConnection() *DbConnection {
+func BorrowDbConnection() (*DbConnection, error) {
 	conn := <-dbConnChan
 	// Connect to DB
-	return conn
+	newConn, err := sql.Open("postgres", config.DB_CONNECTION)
+	if err != nil {
+		dbConnChan <- conn
+		return nil, err
+	}
+	conn.SqlDb = newConn
+	return conn, nil
 }
 
 func ReturnDbConnection(dbConn *DbConnection) {
 	// Close connection
+	err := dbConn.SqlDb.Close()
+	if err != nil {
+		fmt.Println("Failed to close connection")
+	}
 	dbConnChan <- dbConn
 }

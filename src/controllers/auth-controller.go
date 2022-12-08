@@ -33,10 +33,17 @@ func Register(r *http.Request) dtos.Response {
 
 	}
 
-	conn := db.BorrowDbConnection()
+	conn, err := db.BorrowDbConnection()
+	if err != nil {
+		return getErrorResponse(http.StatusInternalServerError, "Something wrong!")
+	}
 	defer db.ReturnDbConnection(conn)
 
+	fmt.Println("Data:", 1)
+	err = conn.SqlDb.Ping()
+	fmt.Println("Data:",21)
 	fmt.Println("Data:", conn)
+	fmt.Println("Err:", err)
 
 	user := models.User{
 		Id:       uuid.New(),
