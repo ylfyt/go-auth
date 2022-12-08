@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	// "go-auth/src/middlewares"
 )
 
 type Route struct {
@@ -48,8 +47,6 @@ const (
 
 func NewRouter() *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
-
-	// router.Use(middlewares.AccessLogger)
 
 	for _, route := range routes {
 		fnHandler := route.HandlerFunc
