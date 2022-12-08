@@ -3,56 +3,10 @@ package db
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
-
-	_ "github.com/lib/pq"
 )
 
-const (
-	LDom = 0xDEFF
-)
-
-var (
-// L *utils.Log = utils.L
-)
-
-type DBConnString struct {
-	Host     string
-	Port     int
-	User     string
-	Password string
-	Dbname   string
-}
-
-func (me DBConnString) Connect() *sql.DB {
-	pgsqlConnStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable application_name=posequnix",
-		me.Host,
-		me.Port,
-		me.User,
-		me.Password,
-		me.Dbname)
-
-	dbconn, err := sql.Open("postgres", pgsqlConnStr)
-	if err != nil {
-		// L.Error(err, "DBPgSQL.Connect|Failed to connect database %s", err)
-	}
-
-	err = dbconn.Ping()
-	if err != nil {
-		// L.Error(err, "DBPgSQL.Connect|Failed to ping database %s", err)
-	}
-
-	_ = pgsqlConnStr
-	// L.Info(LDom, 0, "DBPgSQL.Connect|Database successfully connected")
-	return dbconn
-}
-
-func (me DBConnString) Close(dbconn *sql.DB) {
-	dbconn.Close()
-}
-
-func GetQuery(dbconn *sql.DB, query string, params ...interface{}) []byte {
-	rows, err := dbconn.Query(query, params...)
+func (me DbConnection) GetQuery(query string, params ...interface{}) []byte {
+	rows, err := me.sqlDb.Query(query, params...)
 
 	if err != nil {
 		// L.Error(err, "DBPgSQL.Connect|Failed to get query %s (q: %s, p: %s)", err, query, params)
@@ -129,8 +83,8 @@ func GetQuery(dbconn *sql.DB, query string, params ...interface{}) []byte {
 	return jsonData
 }
 
-func WriteQuery(dbconn *sql.DB, query string, params ...interface{}) int64 {
-	res, err := dbconn.Exec(query, params...)
+func (me DbConnection) WriteQuery(query string, params ...interface{}) int64 {
+	res, err := me.sqlDb.Exec(query, params...)
 
 	if err != nil {
 		// L.Error(err, err.Error())
@@ -143,9 +97,8 @@ func WriteQuery(dbconn *sql.DB, query string, params ...interface{}) int64 {
 	return affectedRows
 }
 
-
-func GetValue(dbconn *sql.DB, query string, params ...interface{}) interface{} {
-	rows, err := dbconn.Query(query, params...)
+func (me DbConnection) GetValue(query string, params ...interface{}) interface{} {
+	rows, err := me.sqlDb.Query(query, params...)
 
 	if err != nil {
 		// L.Error(err, "DBPgSQL.Connect|Failed to get query %s (q: %s, p: %s)", err, query, params)
