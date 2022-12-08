@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"go-auth/src/db"
 	"go-auth/src/dtos"
 	"go-auth/src/models"
@@ -44,9 +45,14 @@ func Register(r *http.Request) dtos.Response {
 		Password: data.Password,
 	}
 
-	inserted := conn.WriteQuery(`
+	inserted, err := conn.WriteQuery(`
 		INSERT INTO users VALUES($1, $2, $3)
 	`, user.Id, user.Username, user.Password)
+
+	if err != nil {
+		fmt.Println("Error:", err)
+		return getErrorResponse(http.StatusInternalServerError, "Failed to insert new user")
+	}
 
 	if inserted == 0 {
 		return getErrorResponse(http.StatusInternalServerError, "Failed to insert new user")

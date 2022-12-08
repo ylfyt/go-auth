@@ -5,19 +5,17 @@ import (
 	"encoding/json"
 )
 
-func (me DbConnection) GetQuery(query string, params ...interface{}) []byte {
+func (me DbConnection) GetQuery(query string, params ...interface{}) ([]byte, error) {
 	rows, err := me.sqlDb.Query(query, params...)
-
 	if err != nil {
-		// L.Error(err, "DBPgSQL.Connect|Failed to get query %s (q: %s, p: %s)", err, query, params)
-		return []byte("[]")
+		return nil, err
 	}
 	defer rows.Close()
 
 	columnTypes, err := rows.ColumnTypes()
 
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	count := len(columnTypes)
@@ -30,16 +28,12 @@ func (me DbConnection) GetQuery(query string, params ...interface{}) []byte {
 			switch v.DatabaseTypeName() {
 			case "VARCHAR", "TEXT", "UUID", "TIMESTAMP":
 				scanArgs[i] = new(sql.NullString)
-				break
 			case "BOOL":
 				scanArgs[i] = new(sql.NullBool)
-				break
 			case "INT64":
 				scanArgs[i] = new(sql.NullInt64)
-				break
 			case "INT32":
 				scanArgs[i] = new(sql.NullInt32)
-				break
 			default:
 				scanArgs[i] = new(sql.NullString)
 			}
@@ -47,7 +41,7 @@ func (me DbConnection) GetQuery(query string, params ...interface{}) []byte {
 
 		err := rows.Scan(scanArgs...)
 		if err != nil {
-			return nil
+			return nil, err
 		}
 
 		masterData := map[string]interface{}{}
@@ -80,35 +74,33 @@ func (me DbConnection) GetQuery(query string, params ...interface{}) []byte {
 	}
 
 	jsonData, err := json.Marshal(finalRows)
-	return jsonData
+	if err != nil {
+		return nil, err
+	}
+	return jsonData, nil
 }
 
-func (me DbConnection) WriteQuery(query string, params ...interface{}) int64 {
+func (me DbConnection) WriteQuery(query string, params ...interface{}) (int64, error) {
 	res, err := me.sqlDb.Exec(query, params...)
-
 	if err != nil {
-		// L.Error(err, err.Error())
-		return 0
+		return 0, err
 	}
 
-	//utils.Ldbg("Query Exec %s, res %s", query, res)
-	affectedRows, _ := res.RowsAffected()
-
-	return affectedRows
+	affectedRows, err := res.RowsAffected()
+	return affectedRows, err
 }
 
-func (me DbConnection) GetValue(query string, params ...interface{}) interface{} {
+func (me DbConnection) GetValue(query string, params ...interface{}) (interface{}, error) {
 	rows, err := me.sqlDb.Query(query, params...)
-
 	if err != nil {
-		// L.Error(err, "DBPgSQL.Connect|Failed to get query %s (q: %s, p: %s)", err, query, params)
+		return nil, err
 	}
 	defer rows.Close()
 
 	columnTypes, err := rows.ColumnTypes()
 
 	if err != nil {
-		return ""
+		return nil, err
 	}
 
 	count := len(columnTypes)
@@ -121,16 +113,12 @@ func (me DbConnection) GetValue(query string, params ...interface{}) interface{}
 			switch v.DatabaseTypeName() {
 			case "VARCHAR", "TEXT", "UUID", "TIMESTAMP":
 				scanArgs[i] = new(sql.NullString)
-				break
 			case "BOOL":
 				scanArgs[i] = new(sql.NullBool)
-				break
 			case "INT64":
 				scanArgs[i] = new(sql.NullInt64)
-				break
 			case "INT32":
 				scanArgs[i] = new(sql.NullInt32)
-				break
 			default:
 				scanArgs[i] = new(sql.NullString)
 			}
@@ -138,29 +126,29 @@ func (me DbConnection) GetValue(query string, params ...interface{}) interface{}
 
 		err := rows.Scan(scanArgs...)
 		if err != nil {
-			return nil
+			return nil, err
 		}
 
-		for i, _ := range columnTypes {
+		for i := range columnTypes {
 			if z, ok := (scanArgs[i]).(*sql.NullBool); ok {
-				return z.Bool
+				return z.Bool, nil
 			}
 			if z, ok := (scanArgs[i]).(*sql.NullString); ok {
-				return z.String
+				return z.String, nil
 			}
 			if z, ok := (scanArgs[i]).(*sql.NullInt64); ok {
-				return z.Int64
+				return z.Int64, nil
 			}
 			if z, ok := (scanArgs[i]).(*sql.NullFloat64); ok {
-				return z.Float64
+				return z.Float64, nil
 			}
 			if z, ok := (scanArgs[i]).(*sql.NullInt32); ok {
-				return z.Int32
+				return z.Int32, nil
 			}
 
-			return scanArgs[i]
+			return scanArgs[i], nil
 		}
 	}
 
-	return nil
+	return nil, nil
 }
