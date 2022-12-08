@@ -35,4 +35,10 @@ var routes = []Route{
 			middlewares.Authorization,
 		},
 	},
+	{
+		Name:        "AuthRegister",
+		Method:      "POST",
+		Pattern:     "/auth/register",
+		HandlerFunc: Register,
+	},
 }
