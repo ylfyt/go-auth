@@ -9,14 +9,14 @@ import (
 	"go-auth/src/middlewares"
 )
 
-func Home(w http.ResponseWriter, r *http.Request) {
-	sendSuccessResponse(w, r, "ok")
+func Home(r *http.Request) ResponseDTO {
+	return getSuccessResponse("ok")
 }
 
-func Ping(w http.ResponseWriter, r *http.Request) {
+func Ping(r *http.Request) ResponseDTO {
 	userId := r.Context().Value(ctx.TokenPayloadCtxKey)
 	fmt.Println("Data:", userId)
-	sendErrorResponse(w, r, http.StatusBadRequest, "Bad Request")
+	return getErrorResponse(http.StatusBadRequest, userId.(string))
 }
 
 var routes = []Route{

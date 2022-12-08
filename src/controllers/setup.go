@@ -6,15 +6,14 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"go-auth/src/ctx"
-	"go-auth/src/middlewares"
+	// "go-auth/src/middlewares"
 )
 
 type Route struct {
 	Name        string
 	Method      string
 	Pattern     string
-	HandlerFunc http.HandlerFunc
+	HandlerFunc func(r *http.Request) ResponseDTO
 	Middlewares []mux.MiddlewareFunc
 }
 
@@ -25,38 +24,22 @@ type ResponseDTO struct {
 	Data    interface{} `json:"data"`
 }
 
-func sendSuccessResponse(w http.ResponseWriter, r *http.Request, data interface{}) {
-	w.Header().Add("content-type", "application/json")
-	response := ResponseDTO{
+func getSuccessResponse(data interface{}) ResponseDTO {
+	return ResponseDTO{
 		Status:  http.StatusOK,
 		Message: "",
 		Success: true,
 		Data:    data,
 	}
-	w.WriteHeader(http.StatusOK)
-	err := json.NewEncoder(w).Encode(response)
-	if err != nil {
-		fmt.Println("Failed to send response", err)
-	}
-	reqId := r.Context().Value(ctx.ReqIdCtxKey)
-	fmt.Printf("REQUEST_SUCCESS %s : %+v\n", reqId, w)
 }
 
-func sendErrorResponse(w http.ResponseWriter, r *http.Request, statusCode int, message string) {
-	w.Header().Add("content-type", "application/json")
-	response := ResponseDTO{
+func getErrorResponse(statusCode int, message string) ResponseDTO {
+	return ResponseDTO{
 		Status:  statusCode,
 		Message: message,
 		Success: false,
 		Data:    nil,
 	}
-	w.WriteHeader(statusCode)
-	err := json.NewEncoder(w).Encode(response)
-	if err != nil {
-		fmt.Println("Failed to send response", err)
-	}
-	reqId := r.Context().Value(ctx.ReqIdCtxKey)
-	fmt.Printf("REQUEST_ERROR %s : %s  |  %+v\n", reqId, message, w)
 }
 
 const (
@@ -66,17 +49,25 @@ const (
 func NewRouter() *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
 
-	router.Use(middlewares.AccessLogger)
+	// router.Use(middlewares.AccessLogger)
 
 	for _, route := range routes {
-		var handler http.Handler = route.HandlerFunc
+		fnHandler := route.HandlerFunc
 		sub := router.
 			Methods(route.Method).Subrouter()
 
 		sub.PathPrefix(API_BASE_URL).
 			Path(route.Pattern).
 			Name(route.Name).
-			Handler(handler)
+			HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				response := fnHandler(r)
+				w.Header().Add("content-type", "application/json")
+				w.WriteHeader(response.Status)
+				err := json.NewEncoder(w).Encode(response)
+				if err != nil {
+					fmt.Println("Failed to send response", err)
+				}
+			})
 		for _, mid := range route.Middlewares {
 			sub.Use(mid)
 		}
