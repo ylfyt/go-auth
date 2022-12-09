@@ -43,6 +43,9 @@ func getData[T any](onlyOneRow bool, conn DbConnection, query string, params ...
 		return nil, err
 	}
 	columnNum := len(columnTypes)
+	if columnNum == 0 {
+		return nil, fmt.Errorf("there is no field in query")
+	}
 
 	var finalValues []T
 	for rows.Next() {
@@ -102,7 +105,10 @@ func getData[T any](onlyOneRow bool, conn DbConnection, query string, params ...
 				return nil, fmt.Errorf("cannot find %s or %s field in %T", fieldName, key, tempData)
 			}
 			if field.Type().String() == "uuid.UUID" {
-				val, _ := uuid.Parse(rowData[key].(string))
+				val, err := uuid.Parse(rowData[key].(string))
+				if err != nil {
+					return nil, err
+				}
 				field.Set(reflect.ValueOf(val))
 				continue
 			}
@@ -133,7 +139,7 @@ func GetFirst[T any](conn DbConnection, query string, params ...interface{}) (*T
 	return &result[0], nil
 }
 
-func WriteQuery(conn DbConnection, query string, params ...interface{}) (int64, error) {
+func Write(conn DbConnection, query string, params ...interface{}) (int64, error) {
 	res, err := conn.sqlDb.Exec(query, params...)
 	if err != nil {
 		return 0, err
@@ -161,7 +167,7 @@ func GetRowCount(conn DbConnection, query string, params ...interface{}) (int, e
 	return count, nil
 }
 
-func GetValue(conn DbConnection, query string, params ...interface{}) (interface{}, error) {
+func GetFieldFirst[T any](conn DbConnection, query string, params ...interface{}) (*T, error) {
 	rows, err := conn.sqlDb.Query(query, params...)
 	if err != nil {
 		return nil, err
@@ -174,51 +180,64 @@ func GetValue(conn DbConnection, query string, params ...interface{}) (interface
 		return nil, err
 	}
 
-	count := len(columnTypes)
-	//finalRows := []interface{}{};
+	columnNum := len(columnTypes)
+	if columnNum == 0 {
+		return nil, fmt.Errorf("there is no field in query")
+	}
 
-	for rows.Next() {
-		scanArgs := make([]interface{}, count)
+	if rows.Next() {
+		scannedData := make([]interface{}, columnNum)
 
 		for i, v := range columnTypes {
 			switch v.DatabaseTypeName() {
 			case "VARCHAR", "TEXT", "UUID", "TIMESTAMP":
-				scanArgs[i] = new(sql.NullString)
+				scannedData[i] = new(sql.NullString)
 			case "BOOL":
-				scanArgs[i] = new(sql.NullBool)
+				scannedData[i] = new(sql.NullBool)
 			case "INT64":
-				scanArgs[i] = new(sql.NullInt64)
+				scannedData[i] = new(sql.NullInt64)
 			case "INT32":
-				scanArgs[i] = new(sql.NullInt32)
+				scannedData[i] = new(sql.NullInt32)
 			default:
-				scanArgs[i] = new(sql.NullString)
+				scannedData[i] = new(sql.NullString)
 			}
 		}
 
-		err := rows.Scan(scanArgs...)
+		err := rows.Scan(scannedData...)
 		if err != nil {
 			return nil, err
 		}
 
-		for i := range columnTypes {
-			if z, ok := (scanArgs[i]).(*sql.NullBool); ok {
-				return z.Bool, nil
-			}
-			if z, ok := (scanArgs[i]).(*sql.NullString); ok {
-				return z.String, nil
-			}
-			if z, ok := (scanArgs[i]).(*sql.NullInt64); ok {
-				return z.Int64, nil
-			}
-			if z, ok := (scanArgs[i]).(*sql.NullFloat64); ok {
-				return z.Float64, nil
-			}
-			if z, ok := (scanArgs[i]).(*sql.NullInt32); ok {
-				return z.Int32, nil
-			}
-
-			return scanArgs[i], nil
+		var val interface{}
+		if z, ok := (scannedData[0]).(*sql.NullBool); ok {
+			val = z.Bool
 		}
+		if z, ok := (scannedData[0]).(*sql.NullString); ok {
+			val = z.String
+		}
+		if z, ok := (scannedData[0]).(*sql.NullInt64); ok {
+			val = z.Int64
+		}
+		if z, ok := (scannedData[0]).(*sql.NullFloat64); ok {
+			val = z.Float64
+		}
+		if z, ok := (scannedData[0]).(*sql.NullInt32); ok {
+			val = z.Int32
+		}
+
+		var data T
+		if reflect.TypeOf(data).String() == "uuid.UUID" {
+			newUuid, err := uuid.Parse(val.(string))
+			if err != nil {
+				return nil, err
+			}
+			var iUuid interface{} = newUuid
+			data = iUuid.(T)
+		} else {
+			data = val.(T)
+		}
+
+		return &data, nil
 	}
 
 	return nil, nil

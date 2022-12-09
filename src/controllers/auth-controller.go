@@ -58,7 +58,7 @@ func Register(r *http.Request) dtos.Response {
 
 	newId := uuid.New()
 
-	inserted, err := db.WriteQuery(*conn, `
+	inserted, err := db.Write(*conn, `
 		INSERT INTO users VALUES($1, $2, $3, NOW())
 	`, newId, data.Username, string(hashedPassword))
 
@@ -117,4 +117,20 @@ func Login(r *http.Request) dtos.Response {
 	}
 
 	return getSuccessResponse(user)
+}
+
+func Test(r *http.Request) dtos.Response {
+	conn, err := db.BorrowDbConnection()
+	if err != nil {
+		return getErrorResponse(http.StatusInternalServerError, "Something wrong!")
+	}
+	defer db.ReturnDbConnection(conn)
+
+	id, err := db.GetFieldFirst[uuid.UUID](*conn, `
+		SELECT id FROM users LIMIT 1
+	`)
+	fmt.Printf("Error %+v\n", err)
+	fmt.Printf("Data: %+v\n", id)
+
+	return getSuccessResponse("ok")
 }
