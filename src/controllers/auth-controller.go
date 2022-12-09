@@ -102,7 +102,7 @@ func Login(r *http.Request) dtos.Response {
 	defer db.ReturnDbConnection(conn)
 
 	user, err := db.GetFirst[models.User](*conn, `
-		SELECT * FROM users WHERE username = $1
+	SELECT * FROM users WHERE username = $1
 	`, data.Username)
 	if err != nil {
 		return getErrorResponse(http.StatusInternalServerError, "Something wrong!")
@@ -117,23 +117,22 @@ func Login(r *http.Request) dtos.Response {
 		return getErrorResponse(http.StatusBadRequest, "Username or password is wrong")
 	}
 
-	return getSuccessResponse(user)
-}
-
-func Test(r *http.Request) dtos.Response {
-	conn, err := db.BorrowDbConnection()
+	refresh, access, jid, err := services.CreateJwtToken(*user)
 	if err != nil {
 		return getErrorResponse(http.StatusInternalServerError, "Something wrong!")
 	}
-	defer db.ReturnDbConnection(conn)
+	inserted, _ := db.Write(*conn, `
+		INSERT INTO jwt_tokens VALUES($1, $2, NOW())
+	`, jid, user.Id)
+	if inserted == 0 {
+		return getErrorResponse(http.StatusInternalServerError, "Something wrong!")
+	}
 
-	user, err := db.GetFirst[models.User](*conn, `
-		SELECT * FROM users LIMIT 1
-	`)
-
-	refresh, access, jid, err := services.CreateJwtToken(*user)
-
-	fmt.Println(err, refresh, access, jid)
-
-	return getSuccessResponse("ok")
+	return getSuccessResponse(dtos.LoginResponse{
+		User: *user,
+		Token: dtos.TokenPayload{
+			RefreshToken: refresh,
+			AccessToken:  access,
+		},
+	})
 }

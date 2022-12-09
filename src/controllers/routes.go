@@ -49,10 +49,4 @@ var routes = []Route{
 		Pattern:     "/auth/login",
 		HandlerFunc: Login,
 	},
-	{
-		Name:        "Test",
-		Method:      "POST",
-		Pattern:     "/auth/test",
-		HandlerFunc: Test,
-	},
 }
