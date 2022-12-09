@@ -112,7 +112,6 @@ func Login(r *http.Request) dtos.Response {
 	if err != nil {
 		return getErrorResponse(http.StatusInternalServerError, "Something wrong!")
 	}
-	fmt.Printf("Data: %+v\n", users)
 
 	if len(users) == 0 {
 		return getErrorResponse(http.StatusBadRequest, "Username or password is wrong")
