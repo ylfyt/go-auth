@@ -55,17 +55,21 @@ func CreateJwtToken(user models.User) (string, string, *uuid.UUID, error) {
 	return refreshToken, accessToken, jid, nil
 }
 
-func VerifyAccessToken(token string) *models.AccessClaims {
+func VerifyAccessToken(token string) (bool, models.AccessClaims) {
 	claims := models.AccessClaims{}
-	tkn, _ := jwt.ParseWithClaims(token, &claims, func(t *jwt.Token) (interface{}, error) {
+	tkn, err := jwt.ParseWithClaims(token, &claims, func(t *jwt.Token) (interface{}, error) {
 		return []byte(config.JWT_ACCESS_TOKEN_SECRET_KEY), nil
 	})
 
-	if !tkn.Valid {
-		return nil
+	if err != nil {
+		return false, models.AccessClaims{}
 	}
 
-	return &claims
+	if !tkn.Valid {
+		return false, models.AccessClaims{}
+	}
+
+	return true, claims
 }
 
 func VerifyRefreshToken(token string) (bool, *uuid.UUID) {
