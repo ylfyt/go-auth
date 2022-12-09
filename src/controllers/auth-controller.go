@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"go-auth/src/db"
 	"go-auth/src/dtos"
-	"go-auth/src/models"
 	"io"
 	"net/http"
 
@@ -50,15 +49,11 @@ func Register(r *http.Request) dtos.Response {
 		return getErrorResponse(http.StatusBadRequest, "Username already exist")
 	}
 
-	user := models.User{
-		Id:       uuid.New(),
-		Username: data.Username,
-		Password: data.Password,
-	}
+	newId := uuid.New()
 
 	inserted, err := conn.WriteQuery(`
-		INSERT INTO users VALUES($1, $2, $3)
-	`, user.Id, user.Username, user.Password)
+		INSERT INTO users VALUES($1, $2, $3, NOW())
+	`, newId, data.Username, data.Password)
 
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -69,5 +64,5 @@ func Register(r *http.Request) dtos.Response {
 		return getErrorResponse(http.StatusInternalServerError, "Failed to insert new user")
 	}
 
-	return getSuccessResponse(user)
+	return getSuccessResponse(newId)
 }

@@ -4,6 +4,7 @@ temp
 tmp
 go-auth
 config.bin
+*.exe
 
 # Log File
 *.log
