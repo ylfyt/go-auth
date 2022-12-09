@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func Register(r *http.Request) dtos.Response {
@@ -29,6 +30,11 @@ func Register(r *http.Request) dtos.Response {
 
 	if len(data.Password) < 4 {
 		return getErrorResponse(http.StatusBadRequest, "Password should be > 4")
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(data.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return getErrorResponse(http.StatusInternalServerError, "Something wrong!")
 	}
 
 	conn, err := db.BorrowDbConnection()
@@ -53,7 +59,7 @@ func Register(r *http.Request) dtos.Response {
 
 	inserted, err := conn.WriteQuery(`
 		INSERT INTO users VALUES($1, $2, $3, NOW())
-	`, newId, data.Username, data.Password)
+	`, newId, data.Username, string(hashedPassword))
 
 	if err != nil {
 		fmt.Println("Error:", err)
