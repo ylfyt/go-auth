@@ -6,6 +6,7 @@ import (
 	"go-auth/src/db"
 	"go-auth/src/dtos"
 	"go-auth/src/models"
+	"go-auth/src/services"
 	"io"
 	"net/http"
 
@@ -129,8 +130,12 @@ func Test(r *http.Request) dtos.Response {
 	user, err := db.GetFirst[models.User](*conn, `
 		SELECT * FROM users LIMIT 1
 	`)
-	fmt.Printf("Error %+v\n", err)
-	fmt.Printf("Data: %+v\n", user)
+
+	token, err := services.CreateAccessToken(*user, uuid.New())
+	fmt.Println("Err", err)
+	claims, err := services.VerifyAccessToken(token)
+	fmt.Println("Err", err)
+	fmt.Printf("Data: %+v\n", claims)
 
 	return getSuccessResponse("ok")
 }
