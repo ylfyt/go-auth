@@ -33,7 +33,7 @@ func snakeCaseToCamelCase(inputUnderScoreStr string) (camelCase string) {
 	return
 }
 
-func Get[T any](conn DbConnection, query string, params ...interface{}) ([]T, error) {
+func getData[T any](onlyOneRow bool, conn DbConnection, query string, params ...interface{}) ([]T, error) {
 	rows, err := conn.sqlDb.Query(query, params...)
 	if err != nil {
 		return nil, err
@@ -110,9 +110,28 @@ func Get[T any](conn DbConnection, query string, params ...interface{}) ([]T, er
 			field.Set(reflect.ValueOf(rowData[key]))
 		}
 
+		if onlyOneRow {
+			return []T{tempData}, nil
+		}
 		finalValues = append(finalValues, tempData)
 	}
 	return finalValues, nil
+}
+
+func Get[T any](conn DbConnection, query string, params ...interface{}) ([]T, error) {
+	return getData[T](false, conn, query, params...)
+}
+
+func GetFirst[T any](conn DbConnection, query string, params ...interface{}) (*T, error) {
+	result, err := getData[T](true, conn, query, params...)
+	if err != nil {
+		return nil, err
+	}
+	if len(result) == 0 {
+		return nil, nil
+	}
+
+	return &result[0], nil
 }
 
 func (me DbConnection) GetQuery(query string, params ...interface{}) ([]byte, error) {

@@ -100,22 +100,21 @@ func Login(r *http.Request) dtos.Response {
 	}
 	defer db.ReturnDbConnection(conn)
 
-	users, err := db.Get[models.User](*conn, `
+	user, err := db.GetFirst[models.User](*conn, `
 		SELECT * FROM users WHERE username = $1
 	`, data.Username)
 	if err != nil {
 		return getErrorResponse(http.StatusInternalServerError, "Something wrong!")
 	}
 
-	if len(users) == 0 {
+	if user == nil {
 		return getErrorResponse(http.StatusBadRequest, "Username or password is wrong")
 	}
 
-
-	err = bcrypt.CompareHashAndPassword([]byte(users[0].Password), []byte(data.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(data.Password))
 	if err != nil {
 		return getErrorResponse(http.StatusBadRequest, "Username or password is wrong")
 	}
 
-	return getSuccessResponse(users[0])
+	return getSuccessResponse(user)
 }
