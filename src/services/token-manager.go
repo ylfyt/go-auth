@@ -42,27 +42,49 @@ func createRefreshToken() (string, *uuid.UUID, error) {
 	return signed, &jid, nil
 }
 
-func CreateJwtToken(user models.User) (string, string, error) {
+func CreateJwtToken(user models.User) (string, string, *uuid.UUID, error) {
 	refreshToken, jid, err := createRefreshToken()
 	if err != nil {
-		return "", "", err
+		return "", "", nil, err
 	}
 	accessToken, err := createAccessToken(user, *jid)
 	if err != nil {
-		return "", "", err
+		return "", "", nil, err
 	}
 
-	return refreshToken, accessToken, nil
+	return refreshToken, accessToken, jid, nil
 }
 
-func VerifyAccessToken(token string) (*models.AccessClaims, error) {
+func VerifyAccessToken(token string) *models.AccessClaims {
 	claims := models.AccessClaims{}
-	tkn, err := jwt.ParseWithClaims(token, &claims, func(t *jwt.Token) (interface{}, error) {
+	tkn, _ := jwt.ParseWithClaims(token, &claims, func(t *jwt.Token) (interface{}, error) {
 		return []byte(config.JWT_ACCESS_TOKEN_SECRET_KEY), nil
 	})
 
 	if !tkn.Valid {
-		return nil, err
+		return nil
 	}
-	return &claims, nil
+
+	return &claims
+}
+
+func VerifyRefreshToken(token string) (bool, *uuid.UUID) {
+	claims := models.RefreshClaims{}
+	_, err := jwt.ParseWithClaims(token, &claims, func(t *jwt.Token) (interface{}, error) {
+		return []byte(config.JWT_REFRESH_TOKEN_SECRET_KEY), nil
+	})
+
+	if err == nil {
+		return true, &claims.Jid
+	}
+
+	if err.Error() == jwt.ErrSignatureInvalid.Error() {
+		return false, nil
+	}
+
+	if (claims == models.RefreshClaims{}) {
+		return false, nil
+	}
+
+	return false, &claims.Jid
 }

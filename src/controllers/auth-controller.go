@@ -131,12 +131,9 @@ func Test(r *http.Request) dtos.Response {
 		SELECT * FROM users LIMIT 1
 	`)
 
-	refresh, access, err := services.CreateJwtToken(*user)
-	if err != nil {
-		fmt.Println("Err", err)
-	} else {
-		fmt.Println("Access", access)
-		fmt.Println("Refresh", refresh)
-	}
+	refresh, access, jid, err := services.CreateJwtToken(*user)
+
+	fmt.Println(err, refresh, access, jid)
+
 	return getSuccessResponse("ok")
 }
