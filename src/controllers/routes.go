@@ -43,4 +43,10 @@ var routes = []Route{
 		Pattern:     "/auth/register",
 		HandlerFunc: Register,
 	},
+	{
+		Name:        "AuthLogin",
+		Method:      "POST",
+		Pattern:     "/auth/login",
+		HandlerFunc: Login,
+	},
 }

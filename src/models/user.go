@@ -6,8 +6,8 @@ import (
 
 type User struct {
 	Id        uuid.UUID `json:"id"`
-	CreatedAt string    `json:"createdAt"`
-	UpdatedAt string    `json:"updatedAt"`
+	CreatedAt string    `json:"created_at"`
+	UpdatedAt string    `json:"updated_at"`
 	Username  string    `json:"username"`
 	Password  string    `json:"-"`
 }
