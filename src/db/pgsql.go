@@ -234,6 +234,9 @@ func GetFieldFirst[T any](conn DbConnection, query string, params ...interface{}
 			var iUuid interface{} = newUuid
 			data = iUuid.(T)
 		} else if typeName == "time.Time" {
+			if val.(string) == "" {
+				return nil, nil
+			}
 			newTime, err := time.Parse(time.RFC3339Nano, val.(string))
 			if err != nil {
 				return nil, err
