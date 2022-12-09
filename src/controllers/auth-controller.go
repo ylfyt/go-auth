@@ -8,6 +8,7 @@ import (
 	"go-auth/src/models"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -126,11 +127,11 @@ func Test(r *http.Request) dtos.Response {
 	}
 	defer db.ReturnDbConnection(conn)
 
-	id, err := db.GetFieldFirst[uuid.UUID](*conn, `
-		SELECT id FROM users LIMIT 1
+	createdAt, err := db.GetFieldFirst[time.Time](*conn, `
+		SELECT created_at FROM users LIMIT 1
 	`)
 	fmt.Printf("Error %+v\n", err)
-	fmt.Printf("Data: %+v\n", id)
+	fmt.Printf("Data: %+v\n", createdAt)
 
 	return getSuccessResponse("ok")
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -211,28 +212,34 @@ func GetFieldFirst[T any](conn DbConnection, query string, params ...interface{}
 		var val interface{}
 		if z, ok := (scannedData[0]).(*sql.NullBool); ok {
 			val = z.Bool
-		}
-		if z, ok := (scannedData[0]).(*sql.NullString); ok {
+		} else if z, ok := (scannedData[0]).(*sql.NullString); ok {
 			val = z.String
-		}
-		if z, ok := (scannedData[0]).(*sql.NullInt64); ok {
+		} else if z, ok := (scannedData[0]).(*sql.NullInt64); ok {
 			val = z.Int64
-		}
-		if z, ok := (scannedData[0]).(*sql.NullFloat64); ok {
+		} else if z, ok := (scannedData[0]).(*sql.NullFloat64); ok {
 			val = z.Float64
-		}
-		if z, ok := (scannedData[0]).(*sql.NullInt32); ok {
+		} else if z, ok := (scannedData[0]).(*sql.NullInt32); ok {
 			val = z.Int32
+		} else {
+			val = scannedData[0]
 		}
 
 		var data T
-		if reflect.TypeOf(data).String() == "uuid.UUID" {
+		typeName := reflect.TypeOf(data).String()
+		if typeName == "uuid.UUID" {
 			newUuid, err := uuid.Parse(val.(string))
 			if err != nil {
 				return nil, err
 			}
 			var iUuid interface{} = newUuid
 			data = iUuid.(T)
+		} else if typeName == "time.Time" {
+			newTime, err := time.Parse(time.RFC3339Nano, val.(string))
+			if err != nil {
+				return nil, err
+			}
+			var iTime interface{} = newTime
+			data = iTime.(T)
 		} else {
 			data = val.(T)
 		}
