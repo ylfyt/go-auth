@@ -5,8 +5,13 @@ import (
 	"github.com/google/uuid"
 )
 
-type JwtClaims struct {
+type AccessClaims struct {
 	jwt.StandardClaims
 	Username string    `json:"username"`
 	Jid      uuid.UUID `json:"jid"`
+}
+
+type RefreshClaims struct {
+	jwt.StandardClaims
+	Jid uuid.UUID `json:"jid"`
 }

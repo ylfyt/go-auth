@@ -9,10 +9,12 @@ import (
 )
 
 var (
-	LISTEN_PORT                  string
-	DB_CONNECTION                string
-	JWT_ACCESS_TOKEN_EXPIRY_TIME int
-	JWT_ACCESS_TOKEN_SECRET_KEY  string
+	LISTEN_PORT                   string
+	DB_CONNECTION                 string
+	JWT_ACCESS_TOKEN_EXPIRY_TIME  int
+	JWT_ACCESS_TOKEN_SECRET_KEY   string
+	JWT_REFRESH_TOKEN_EXPIRY_TIME int
+	JWT_REFRESH_TOKEN_SECRET_KEY  string
 )
 
 func loadConfig() error {
@@ -44,6 +46,22 @@ func loadConfig() error {
 		return err
 	}
 	JWT_ACCESS_TOKEN_EXPIRY_TIME = expiry
+
+	temp = os.Getenv("JWT_REFRESH_TOKEN_SECRET_KEY")
+	if temp == "" {
+		return errors.New("JWT_REFRESH_TOKEN_SECRET_KEY is not found")
+	}
+	JWT_REFRESH_TOKEN_SECRET_KEY = temp
+
+	temp = os.Getenv("JWT_REFRESH_TOKEN_EXPIRY_TIME")
+	if temp == "" {
+		return errors.New("JWT_REFRESH_TOKEN_EXPIRY_TIME is not found")
+	}
+	expiry, err = strconv.Atoi(temp)
+	if err != nil {
+		return err
+	}
+	JWT_REFRESH_TOKEN_EXPIRY_TIME = expiry
 
 	return nil
 }

@@ -9,8 +9,8 @@ import (
 	"github.com/google/uuid"
 )
 
-func CreateAccessToken(user models.User, refreshTokenId uuid.UUID) (string, error) {
-	claims := models.JwtClaims{
+func createAccessToken(user models.User, refreshTokenId uuid.UUID) (string, error) {
+	claims := models.AccessClaims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Duration(config.JWT_ACCESS_TOKEN_EXPIRY_TIME) * time.Second).Unix(),
 		},
@@ -25,8 +25,38 @@ func CreateAccessToken(user models.User, refreshTokenId uuid.UUID) (string, erro
 	return signed, err
 }
 
-func VerifyAccessToken(token string) (*models.JwtClaims, error) {
-	claims := models.JwtClaims{}
+func createRefreshToken() (string, *uuid.UUID, error) {
+	jid := uuid.New()
+	claims := models.RefreshClaims{
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Duration(config.JWT_REFRESH_TOKEN_EXPIRY_TIME) * time.Minute).Unix(),
+		},
+		Jid: jid,
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signed, err := token.SignedString([]byte(config.JWT_REFRESH_TOKEN_SECRET_KEY))
+	if err != nil {
+		return "", nil, err
+	}
+
+	return signed, &jid, nil
+}
+
+func CreateJwtToken(user models.User) (string, string, error) {
+	refreshToken, jid, err := createRefreshToken()
+	if err != nil {
+		return "", "", err
+	}
+	accessToken, err := createAccessToken(user, *jid)
+	if err != nil {
+		return "", "", err
+	}
+
+	return refreshToken, accessToken, nil
+}
+
+func VerifyAccessToken(token string) (*models.AccessClaims, error) {
+	claims := models.AccessClaims{}
 	tkn, err := jwt.ParseWithClaims(token, &claims, func(t *jwt.Token) (interface{}, error) {
 		return []byte(config.JWT_ACCESS_TOKEN_SECRET_KEY), nil
 	})
