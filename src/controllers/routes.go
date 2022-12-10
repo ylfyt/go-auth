@@ -1,13 +1,15 @@
 package controllers
 
 import (
-	"github.com/gorilla/mux"
 	"go-auth/src/controllers/auth"
 	"go-auth/src/controllers/home"
+	"go-auth/src/ctx"
 	"go-auth/src/middlewares"
+
+	"github.com/gorilla/mux"
 )
 
-var routes = []Route{
+var routes = []ctx.Route{
 	{
 		Name:        "Home",
 		Method:      "GET",

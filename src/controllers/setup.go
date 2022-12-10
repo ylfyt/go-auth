@@ -3,19 +3,10 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"go-auth/src/dtos"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
-
-type Route struct {
-	Name        string
-	Method      string
-	Pattern     string
-	HandlerFunc func(r *http.Request) dtos.Response
-	Middlewares []mux.MiddlewareFunc
-}
 
 const (
 	API_BASE_URL = "/api"
