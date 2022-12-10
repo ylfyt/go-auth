@@ -6,7 +6,7 @@ import (
 	"go-auth/src/ctx"
 )
 
-var routes []ctx.Route = append(
+var appRoutes = [][]ctx.Route{
 	home.Routes,
-	auth.Routes...
-)
+	auth.Routes,
+}
