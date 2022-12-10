@@ -56,4 +56,10 @@ var routes = []Route{
 		Pattern:     "/auth/refresh",
 		HandlerFunc: RefreshToken,
 	},
+	{
+		Name:        "AuthLogout",
+		Method:      "POST",
+		Pattern:     "/auth/logout",
+		HandlerFunc: Logout,
+	},
 }
