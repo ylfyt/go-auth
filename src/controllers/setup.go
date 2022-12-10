@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"go-auth/src/middlewares"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -15,11 +16,13 @@ const (
 func NewRouter() *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
 
+	router.Use(middlewares.Cors)
+
 	for _, routes := range appRoutes{
 		for _, route := range routes {
 			fnHandler := route.HandlerFunc
 			sub := router.
-				Methods(route.Method).Subrouter()
+				Methods(route.Method, "OPTIONS").Subrouter()
 	
 			sub.PathPrefix(API_BASE_URL).
 				Path(route.Pattern).
