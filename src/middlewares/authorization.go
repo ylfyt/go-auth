@@ -25,6 +25,8 @@ func validate(authHeader string) (bool, models.AccessClaims) {
 
 func Authorization(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		reqId := r.Context().Value(ctx.ReqIdCtxKey)
+
 		authHeader := r.Header.Get("authorization")
 
 		valid, claims := validate(authHeader)
@@ -41,10 +43,13 @@ func Authorization(next http.Handler) http.Handler {
 			if err != nil {
 				fmt.Println("Failed to send response", err)
 			}
+			fmt.Printf("[%s] REQUEST FAILED with RESPONSE:%+v\n", reqId, response)
 			return
 		}
 
 		r = r.WithContext(context.WithValue(r.Context(), ctx.UserClaimsCtxKey, claims))
+
+		fmt.Printf("[%s] REQUEST AUTHORIZED with User Claims: %+v\n", reqId, claims)
 
 		next.ServeHTTP(w, r)
 	})

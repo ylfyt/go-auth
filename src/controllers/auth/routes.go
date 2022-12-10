@@ -1,6 +1,11 @@
 package auth
 
-import "go-auth/src/ctx"
+import (
+	"go-auth/src/ctx"
+	"go-auth/src/middlewares"
+
+	"github.com/gorilla/mux"
+)
 
 var Routes = []ctx.Route{
 	{
@@ -32,5 +37,14 @@ var Routes = []ctx.Route{
 		Method:      "POST",
 		Pattern:     "/auth/logout-all",
 		HandlerFunc: logoutAll,
+	},
+	{
+		Name:        "AuthUsers",
+		Method:      "GET",
+		Pattern:     "/auth/users",
+		HandlerFunc: getUsers,
+		Middlewares: []mux.MiddlewareFunc{
+			middlewares.Authorization,
+		},
 	},
 }
