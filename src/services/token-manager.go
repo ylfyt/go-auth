@@ -74,21 +74,17 @@ func VerifyAccessToken(token string) (bool, models.AccessClaims) {
 
 func VerifyRefreshToken(token string) (bool, *uuid.UUID) {
 	claims := models.RefreshClaims{}
-	_, err := jwt.ParseWithClaims(token, &claims, func(t *jwt.Token) (interface{}, error) {
+	tkn, err := jwt.ParseWithClaims(token, &claims, func(t *jwt.Token) (interface{}, error) {
 		return []byte(config.JWT_REFRESH_TOKEN_SECRET_KEY), nil
 	})
 
-	if err == nil {
-		return true, &claims.Jid
-	}
-
-	if err.Error() == jwt.ErrSignatureInvalid.Error() {
+	if err != nil {
 		return false, nil
 	}
 
-	if (claims == models.RefreshClaims{}) {
+	if !tkn.Valid {
 		return false, nil
 	}
 
-	return false, &claims.Jid
+	return true, &claims.Jid
 }
