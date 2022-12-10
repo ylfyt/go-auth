@@ -13,7 +13,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func Register(r *http.Request) dtos.Response {
+func register(r *http.Request) dtos.Response {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		return utils.GetErrorResponse(http.StatusBadRequest, "Failed to get request body")

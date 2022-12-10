@@ -6,6 +6,6 @@ import (
 	"net/http"
 )
 
-func Ping(r *http.Request) dtos.Response {
+func ping(r *http.Request) dtos.Response {
 	return utils.GetSuccessResponse("ok")
 }

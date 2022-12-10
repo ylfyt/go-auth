@@ -11,7 +11,7 @@ import (
 	"net/http"
 )
 
-func Logout(r *http.Request) dtos.Response {
+func logout(r *http.Request) dtos.Response {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		return utils.GetErrorResponse(http.StatusBadRequest, "Failed to get request body")

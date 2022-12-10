@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func Home(r *http.Request) dtos.Response {
+func home(r *http.Request) dtos.Response {
 	claims := r.Context().Value(ctx.UserClaimsCtxKey).(models.AccessClaims)
 	fmt.Printf("Data: %+v\n", claims)
 	return utils.GetSuccessResponse(claims)

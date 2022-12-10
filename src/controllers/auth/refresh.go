@@ -12,7 +12,7 @@ import (
 	"net/http"
 )
 
-func RefreshToken(r *http.Request) dtos.Response {
+func refreshToken(r *http.Request) dtos.Response {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		return utils.GetErrorResponse(http.StatusBadRequest, "Failed to get request body")
