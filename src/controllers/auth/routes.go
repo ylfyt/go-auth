@@ -27,4 +27,10 @@ var Routes = []ctx.Route{
 		Pattern:     "/auth/logout",
 		HandlerFunc: logout,
 	},
+	{
+		Name:        "AuthLogoutAll",
+		Method:      "POST",
+		Pattern:     "/auth/logout-all",
+		HandlerFunc: logoutAll,
+	},
 }
