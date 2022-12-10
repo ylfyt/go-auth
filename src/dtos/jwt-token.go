@@ -1,13 +1,13 @@
 package dtos
 
 type RefreshPayload struct {
-	RefreshToken string `json:"refresh_token"`
+	RefreshToken string `json:"refreshToken"`
 }
 type AccessPayload struct {
-	RefreshToken string `json:"refresh_token"`
+	RefreshToken string `json:"refreshToken"`
 }
 
 type TokenPayload struct {
-	RefreshToken string `json:"refresh_token"`
-	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refreshToken"`
+	AccessToken  string `json:"accessToken"`
 }
