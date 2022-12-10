@@ -50,4 +50,10 @@ var routes = []Route{
 		Pattern:     "/auth/login",
 		HandlerFunc: Login,
 	},
+	{
+		Name:        "AuthRefresh",
+		Method:      "POST",
+		Pattern:     "/auth/refresh",
+		HandlerFunc: RefreshToken,
+	},
 }
