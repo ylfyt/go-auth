@@ -18,7 +18,7 @@ var Routes = []ctx.Route{
 	{
 		Name:        "AuthRefresh",
 		Method:      "POST",
-		Pattern:     "/auth/refresh",
+		Pattern:     "/auth/refresh-token",
 		HandlerFunc: refreshToken,
 	},
 	{

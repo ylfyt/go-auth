@@ -3,6 +3,7 @@ package auth
 import (
 	"encoding/json"
 	"fmt"
+	"go-auth/src/config"
 	"go-auth/src/db"
 	"go-auth/src/dtos"
 	"go-auth/src/models"
@@ -71,8 +72,12 @@ func refreshToken(r *http.Request) dtos.Response {
 		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong!")
 	}
 
-	return utils.GetSuccessResponse(dtos.TokenPayload{
-		RefreshToken: refresh,
-		AccessToken:  access,
+	return utils.GetSuccessResponse(dtos.LoginResponse{
+		User: *user,
+		Token: dtos.TokenPayload{
+			RefreshToken: refresh,
+			AccessToken:  access,
+			ExpiredIn:    int64(config.JWT_ACCESS_TOKEN_EXPIRY_TIME),
+		},
 	})
 }

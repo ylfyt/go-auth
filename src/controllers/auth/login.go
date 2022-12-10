@@ -2,6 +2,7 @@ package auth
 
 import (
 	"encoding/json"
+	"go-auth/src/config"
 	"go-auth/src/db"
 	"go-auth/src/dtos"
 	"go-auth/src/models"
@@ -71,6 +72,7 @@ func login(r *http.Request) dtos.Response {
 		Token: dtos.TokenPayload{
 			RefreshToken: refresh,
 			AccessToken:  access,
+			ExpiredIn: int64(config.JWT_ACCESS_TOKEN_EXPIRY_TIME),
 		},
 	})
 }

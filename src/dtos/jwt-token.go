@@ -10,4 +10,5 @@ type AccessPayload struct {
 type TokenPayload struct {
 	RefreshToken string `json:"refreshToken"`
 	AccessToken  string `json:"accessToken"`
+	ExpiredIn    int64  `json:"expiredIn"`
 }
