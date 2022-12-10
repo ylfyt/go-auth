@@ -17,24 +17,6 @@ type Route struct {
 	Middlewares []mux.MiddlewareFunc
 }
 
-func getSuccessResponse(data interface{}) dtos.Response {
-	return dtos.Response{
-		Status:  http.StatusOK,
-		Message: "",
-		Success: true,
-		Data:    data,
-	}
-}
-
-func getErrorResponse(statusCode int, message string) dtos.Response {
-	return dtos.Response{
-		Status:  statusCode,
-		Message: message,
-		Success: false,
-		Data:    nil,
-	}
-}
-
 const (
 	API_BASE_URL = "/api"
 )

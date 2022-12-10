@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"net/http"
 
+	"go-auth/src/controllers/auth"
 	"go-auth/src/ctx"
 	"go-auth/src/dtos"
 	"go-auth/src/middlewares"
 	"go-auth/src/models"
+	"go-auth/src/utils"
 
 	"github.com/gorilla/mux"
 )
@@ -15,11 +17,11 @@ import (
 func Home(r *http.Request) dtos.Response {
 	claims := r.Context().Value(ctx.UserClaimsCtxKey).(models.AccessClaims)
 	fmt.Printf("Data: %+v\n", claims)
-	return getSuccessResponse(claims)
+	return utils.GetSuccessResponse(claims)
 }
 
 func Ping(r *http.Request) dtos.Response {
-	return getSuccessResponse("ok")
+	return utils.GetSuccessResponse("ok")
 }
 
 var routes = []Route{
@@ -42,7 +44,7 @@ var routes = []Route{
 		Name:        "AuthRegister",
 		Method:      "POST",
 		Pattern:     "/auth/register",
-		HandlerFunc: Register,
+		HandlerFunc: auth.Register,
 	},
 	{
 		Name:        "AuthLogin",
