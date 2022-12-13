@@ -23,7 +23,7 @@ func NewRouter() *mux.Router {
 	for _, routes := range appRoutes {
 		for _, route := range routes {
 			fnHandler := route.HandlerFunc
-			fmt.Println("API SETUP:", route.Method, route.Pattern)
+			fmt.Printf("API SETUP: %s | m:%d | %s\n", route.Pattern, len(route.Middlewares), route.Method)
 			sub := router.
 				Methods(route.Method, "OPTIONS").Subrouter()
 
