@@ -54,72 +54,60 @@ func getData[T any](onlyOneRow bool, conn DbConnection, query string, params ...
 		fieldNames[v.Name()] = camelCase
 	}
 
+	scannedData := make([]interface{}, columnNum)
+	for i, v := range columnTypes {
+		switch v.DatabaseTypeName() {
+		case "VARCHAR", "TEXT", "UUID", "TIMESTAMP":
+			scannedData[i] = new(sql.NullString)
+		case "BOOL":
+			scannedData[i] = new(sql.NullBool)
+		case "INT64":
+			scannedData[i] = new(sql.NullInt64)
+		case "INT32":
+			scannedData[i] = new(sql.NullInt32)
+		default:
+			scannedData[i] = new(sql.NullString)
+		}
+	}
+
 	var finalValues []T
 	for rows.Next() {
-		scannedData := make([]interface{}, columnNum)
-
-		for i, v := range columnTypes {
-			switch v.DatabaseTypeName() {
-			case "VARCHAR", "TEXT", "UUID", "TIMESTAMP":
-				scannedData[i] = new(sql.NullString)
-			case "BOOL":
-				scannedData[i] = new(sql.NullBool)
-			case "INT64":
-				scannedData[i] = new(sql.NullInt64)
-			case "INT32":
-				scannedData[i] = new(sql.NullInt32)
-			default:
-				scannedData[i] = new(sql.NullString)
-			}
-		}
-
 		err := rows.Scan(scannedData...)
 		if err != nil {
 			return nil, err
 		}
 
-		rowData := map[string]interface{}{}
-		for i, v := range columnTypes {
-			if z, ok := (scannedData[i]).(*sql.NullBool); ok {
-				rowData[v.Name()] = z.Bool
-				continue
-			}
-			if z, ok := (scannedData[i]).(*sql.NullString); ok {
-				rowData[v.Name()] = z.String
-				continue
-			}
-			if z, ok := (scannedData[i]).(*sql.NullInt64); ok {
-				rowData[v.Name()] = z.Int64
-				continue
-			}
-			if z, ok := (scannedData[i]).(*sql.NullFloat64); ok {
-				rowData[v.Name()] = z.Float64
-				continue
-			}
-			if z, ok := (scannedData[i]).(*sql.NullInt32); ok {
-				rowData[v.Name()] = z.Int32
-				continue
-			}
-
-			rowData[v.Name()] = scannedData[i]
-		}
-
 		var tempData T
-		for key := range rowData {
-			fieldName := fieldNames[key]
-			field := reflect.ValueOf(&tempData).Elem().FieldByName(fieldName)
-			if (field == reflect.Value{}) {
-				return nil, fmt.Errorf("cannot find %s or %s field in %T", fieldName, key, tempData)
+		for i, v := range columnTypes {
+			var val interface{}
+			if z, ok := (scannedData[i]).(*sql.NullBool); ok {
+				val = z.Bool
+			} else if z, ok := (scannedData[i]).(*sql.NullString); ok {
+				val = z.String
+			} else if z, ok := (scannedData[i]).(*sql.NullInt64); ok {
+				val = z.Int64
+			} else if z, ok := (scannedData[i]).(*sql.NullFloat64); ok {
+				val = z.Float64
+			} else if z, ok := (scannedData[i]).(*sql.NullInt32); ok {
+				val = z.Int32
+			} else {
+				val = scannedData[i]
 			}
-			if field.Type().String() == "uuid.UUID" {
-				val, err := uuid.Parse(rowData[key].(string))
-				if err != nil {
-					return nil, err
-				}
+
+			field := reflect.ValueOf(&tempData).Elem().FieldByName(fieldNames[v.Name()])
+			if (field == reflect.Value{}) {
+				return nil, fmt.Errorf("cannot find %s or %s field in %T", fieldNames[v.Name()], v.Name(), tempData)
+			}
+			if field.Type().String() != "uuid.UUID" {
 				field.Set(reflect.ValueOf(val))
 				continue
 			}
-			field.Set(reflect.ValueOf(rowData[key]))
+
+			val, err := uuid.Parse(val.(string))
+			if err != nil {
+				return nil, err
+			}
+			field.Set(reflect.ValueOf(val))
 		}
 
 		if onlyOneRow {
@@ -192,24 +180,24 @@ func GetFieldFirst[T any](conn DbConnection, query string, params ...interface{}
 		return nil, fmt.Errorf("there is no field in query")
 	}
 
-	if rows.Next() {
-		scannedData := make([]interface{}, columnNum)
+	scannedData := make([]interface{}, columnNum)
 
-		for i, v := range columnTypes {
-			switch v.DatabaseTypeName() {
-			case "VARCHAR", "TEXT", "UUID", "TIMESTAMP":
-				scannedData[i] = new(sql.NullString)
-			case "BOOL":
-				scannedData[i] = new(sql.NullBool)
-			case "INT64":
-				scannedData[i] = new(sql.NullInt64)
-			case "INT32":
-				scannedData[i] = new(sql.NullInt32)
-			default:
-				scannedData[i] = new(sql.NullString)
-			}
+	for i, v := range columnTypes {
+		switch v.DatabaseTypeName() {
+		case "VARCHAR", "TEXT", "UUID", "TIMESTAMP":
+			scannedData[i] = new(sql.NullString)
+		case "BOOL":
+			scannedData[i] = new(sql.NullBool)
+		case "INT64":
+			scannedData[i] = new(sql.NullInt64)
+		case "INT32":
+			scannedData[i] = new(sql.NullInt32)
+		default:
+			scannedData[i] = new(sql.NullString)
 		}
+	}
 
+	if rows.Next() {
 		err := rows.Scan(scannedData...)
 		if err != nil {
 			return nil, err
@@ -239,7 +227,11 @@ func GetFieldFirst[T any](conn DbConnection, query string, params ...interface{}
 			}
 			var iUuid interface{} = newUuid
 			data = iUuid.(T)
-		} else if typeName == "time.Time" {
+
+			return &data, nil
+		}
+
+		if typeName == "time.Time" {
 			if val.(string) == "" {
 				return nil, nil
 			}
@@ -249,10 +241,11 @@ func GetFieldFirst[T any](conn DbConnection, query string, params ...interface{}
 			}
 			var iTime interface{} = newTime
 			data = iTime.(T)
-		} else {
-			data = val.(T)
+
+			return &data, nil
 		}
 
+		data = val.(T)
 		return &data, nil
 	}
 
