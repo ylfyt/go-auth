@@ -22,3 +22,15 @@ func GetErrorResponse(statusCode int, message string) dtos.Response {
 		Data:    nil,
 	}
 }
+
+func GetBadRequestResponse(message string) dtos.Response {
+	return GetErrorResponse(http.StatusBadRequest, message)
+}
+
+func GetInternalErrorResponse(message string) dtos.Response {
+	return GetErrorResponse(http.StatusInternalServerError, message)
+}
+
+func GetUnauthorizedResponse(message string) dtos.Response {
+	return GetErrorResponse(http.StatusUnauthorized, message)
+}

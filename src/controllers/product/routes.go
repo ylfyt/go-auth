@@ -9,4 +9,10 @@ var Routes = []ctx.Route{
 		Pattern:     "/product",
 		HandlerFunc: getProduct,
 	},
+	{
+		Name:        "CreateProduct",
+		Method:      "POST",
+		Pattern:     "/product",
+		HandlerFunc: createProduct,
+	},
 }
