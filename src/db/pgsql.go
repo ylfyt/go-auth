@@ -61,16 +61,16 @@ func getData[T any](onlyOneRow bool, conn DbConnection, query string, params ...
 			scannedData[i] = new(sql.NullString)
 		case "BOOL":
 			scannedData[i] = new(sql.NullBool)
-		case "INT64":
+		case "INT8":
 			scannedData[i] = new(sql.NullInt64)
-		case "INT32":
+		case "INT4":
 			scannedData[i] = new(sql.NullInt32)
 		default:
 			scannedData[i] = new(sql.NullString)
 		}
 	}
 
-	var finalValues []T
+	var finalValues []T = make([]T, 0)
 	for rows.Next() {
 		err := rows.Scan(scannedData...)
 		if err != nil {
@@ -188,9 +188,9 @@ func GetFieldFirst[T any](conn DbConnection, query string, params ...interface{}
 			scannedData[i] = new(sql.NullString)
 		case "BOOL":
 			scannedData[i] = new(sql.NullBool)
-		case "INT64":
+		case "INT8":
 			scannedData[i] = new(sql.NullInt64)
-		case "INT32":
+		case "INT4":
 			scannedData[i] = new(sql.NullInt32)
 		default:
 			scannedData[i] = new(sql.NullString)
