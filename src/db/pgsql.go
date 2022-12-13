@@ -48,6 +48,12 @@ func getData[T any](onlyOneRow bool, conn DbConnection, query string, params ...
 		return nil, fmt.Errorf("there is no field in query")
 	}
 
+	var fieldNames = make(map[string]string)
+	for _, v := range columnTypes {
+		camelCase := snakeCaseToCamelCase(v.Name())
+		fieldNames[v.Name()] = camelCase
+	}
+
 	var finalValues []T
 	for rows.Next() {
 		scannedData := make([]interface{}, columnNum)
@@ -100,7 +106,7 @@ func getData[T any](onlyOneRow bool, conn DbConnection, query string, params ...
 
 		var tempData T
 		for key := range rowData {
-			fieldName := snakeCaseToCamelCase(key)
+			fieldName := fieldNames[key]
 			field := reflect.ValueOf(&tempData).Elem().FieldByName(fieldName)
 			if (field == reflect.Value{}) {
 				return nil, fmt.Errorf("cannot find %s or %s field in %T", fieldName, key, tempData)
