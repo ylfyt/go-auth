@@ -13,16 +13,6 @@ import (
 )
 
 func createProduct(data dtos.CreateProduct) dtos.Response {
-	if len(data.Name) < 5 {
-		return utils.GetBadRequestResponse("Name should be > 5")
-	}
-	if len(data.Description) < 5 {
-		return utils.GetBadRequestResponse("Description should be > 5")
-	}
-	if data.Price < 1 {
-		return utils.GetBadRequestResponse("Price should be > 0")
-	}
-
 	conn, err := db.BorrowDbConnection()
 	if err != nil {
 		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong")

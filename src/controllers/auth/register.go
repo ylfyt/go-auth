@@ -12,14 +12,6 @@ import (
 )
 
 func register(data dtos.Register) dtos.Response {
-	if len(data.Username) < 4 || len(data.Username) > 20 {
-		return utils.GetErrorResponse(http.StatusBadRequest, "Username should be > 4 and < 20")
-	}
-
-	if len(data.Password) < 4 {
-		return utils.GetErrorResponse(http.StatusBadRequest, "Password should be > 4")
-	}
-
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(data.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong!")
