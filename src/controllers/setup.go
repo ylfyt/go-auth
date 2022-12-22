@@ -46,7 +46,7 @@ func validateHandler(handler interface{}) error {
 	return nil
 }
 
-func getCallParams(r *http.Request, refFunc interface{}) []reflect.Value {
+func getCallParams(r *http.Request, refFunc interface{}) ([]reflect.Value, int) {
 	refType := reflect.TypeOf(refFunc)
 	var argTypes []reflect.Type
 	for i := 0; i < refType.NumIn(); i++ {
@@ -61,18 +61,19 @@ func getCallParams(r *http.Request, refFunc interface{}) []reflect.Value {
 		urlParams = append(urlParams, tempParams[key])
 	}
 
+	structIdx := -1
 	var callParams []reflect.Value
-	for _, v := range argTypes {
+	for i, v := range argTypes {
+		if v.Kind() == reflect.Pointer {
+			callParams = append(callParams, reflect.ValueOf(r))
+			continue
+		}
 		if v.Kind() == reflect.Struct {
 			jsonString, _ := io.ReadAll(r.Body)
 			temp := reflect.New(v).Interface()
 			_ = json.Unmarshal([]byte(jsonString), &temp)
 			callParams = append(callParams, reflect.ValueOf(temp).Elem())
-			continue
-		}
-
-		if v.Kind() == reflect.Pointer {
-			callParams = append(callParams, reflect.ValueOf(r))
+			structIdx = i
 			continue
 		}
 
@@ -84,7 +85,22 @@ func getCallParams(r *http.Request, refFunc interface{}) []reflect.Value {
 		}
 	}
 
-	return callParams
+	return callParams, structIdx
+}
+
+func sendResponse(w http.ResponseWriter, r *http.Request, response dtos.Response) {
+	w.Header().Add("content-type", "application/json")
+	w.WriteHeader(response.Status)
+	err := json.NewEncoder(w).Encode(response)
+	if err != nil {
+		fmt.Println("Failed to send response", err)
+	}
+	reqId := r.Context().Value(ctx.ReqIdCtxKey)
+	if response.Status == http.StatusOK {
+		fmt.Printf("[%s] REQUEST SUCCESS\n", reqId)
+		return
+	}
+	fmt.Printf("[%s] REQUEST FAILED with RESPONSE:%+v\n", reqId, response)
 }
 
 func NewRouter() *mux.Router {
@@ -110,21 +126,16 @@ func NewRouter() *mux.Router {
 				Path(route.Pattern).
 				Name(route.Name).
 				HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					params := getCallParams(r, fnHandler)
-					response := reflect.ValueOf(fnHandler).Call(params)[0].Interface().(dtos.Response)
-
-					w.Header().Add("content-type", "application/json")
-					w.WriteHeader(response.Status)
-					err := json.NewEncoder(w).Encode(response)
-					if err != nil {
-						fmt.Println("Failed to send response", err)
-					}
-					reqId := r.Context().Value(ctx.ReqIdCtxKey)
-					if response.Status == http.StatusOK {
-						fmt.Printf("[%s] REQUEST SUCCESS\n", reqId)
+					params, shouldBeValidateIdx := getCallParams(r, fnHandler)
+					if shouldBeValidateIdx == -1 {
+						response := reflect.ValueOf(fnHandler).Call(params)[0].Interface().(dtos.Response)
+						sendResponse(w, r, response)
 						return
 					}
-					fmt.Printf("[%s] REQUEST FAILED with RESPONSE:%+v\n", reqId, response)
+
+					// TODO: Validate payload
+					response := reflect.ValueOf(fnHandler).Call(params)[0].Interface().(dtos.Response)
+					sendResponse(w, r, response)
 				})
 			for _, mid := range route.Middlewares {
 				sub.Use(mid)
