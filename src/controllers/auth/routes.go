@@ -47,4 +47,13 @@ var Routes = []ctx.Route{
 			middlewares.Authorization,
 		},
 	},
+	{
+		Name:        "AuthGetUsersById",
+		Method:      "GET",
+		Pattern:     "/auth/users/{id}",
+		HandlerFunc: getUserById,
+		Middlewares: []mux.MiddlewareFunc{
+			// middlewares.Authorization,
+		},
+	},
 }

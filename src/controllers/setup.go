@@ -56,7 +56,12 @@ func getCallParams(r *http.Request, refFunc interface{}) []reflect.Value {
 
 	jsonString, _ := io.ReadAll(r.Body)
 	idx := 0
-	urlParams := []string{}
+	tempParams := mux.Vars(r)
+	var urlParams = make([]string, 0, len(tempParams))
+	for key := range tempParams {
+		urlParams = append(urlParams, tempParams[key])
+	}
+	
 	var callParams []reflect.Value
 	for _, v := range argTypes {
 		if v.Kind() != reflect.Struct {
