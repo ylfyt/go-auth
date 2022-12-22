@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func getProduct(r *http.Request) dtos.Response {
+func getProduct() dtos.Response {
 	conn, err := db.BorrowDbConnection()
 	if err != nil {
 		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong")

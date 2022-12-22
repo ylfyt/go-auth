@@ -1,31 +1,18 @@
 package product
 
 import (
-	"encoding/json"
 	"fmt"
 	"go-auth/src/db"
 	"go-auth/src/dtos"
 	"go-auth/src/models"
 	"go-auth/src/utils"
-	"io"
 	"net/http"
 	"time"
 
 	"github.com/google/uuid"
 )
 
-func createProduct(r *http.Request) dtos.Response {
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		return utils.GetErrorResponse(http.StatusBadRequest, "Failed to get request body")
-	}
-
-	var data dtos.CreateProduct
-	err = json.Unmarshal(body, &data)
-	if err != nil {
-		return utils.GetErrorResponse(http.StatusBadRequest, "Failed to get payload")
-	}
-
+func createProduct(data dtos.CreateProduct) dtos.Response {
 	if len(data.Name) < 5 {
 		return utils.GetBadRequestResponse("Name should be > 5")
 	}

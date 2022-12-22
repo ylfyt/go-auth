@@ -1,31 +1,18 @@
 package auth
 
 import (
-	"encoding/json"
 	"go-auth/src/config"
 	"go-auth/src/db"
 	"go-auth/src/dtos"
 	"go-auth/src/models"
 	"go-auth/src/services"
 	"go-auth/src/utils"
-	"io"
 	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
-func login(r *http.Request) dtos.Response {
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		return utils.GetErrorResponse(http.StatusBadRequest, "Failed to get request body")
-	}
-
-	var data dtos.Register
-	err = json.Unmarshal(body, &data)
-	if err != nil {
-		return utils.GetErrorResponse(http.StatusBadRequest, "Failed to get payload")
-	}
-
+func login(data dtos.Register) dtos.Response {
 	if len(data.Username) < 4 || len(data.Username) > 20 {
 		return utils.GetErrorResponse(http.StatusBadRequest, "Username should be > 4 and < 20")
 	}

@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func getUsers(_ *http.Request) dtos.Response {
+func getUsers() dtos.Response {
 	conn, err := db.BorrowDbConnection()
 	if err != nil {
 		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong!")

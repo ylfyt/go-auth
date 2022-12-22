@@ -88,6 +88,7 @@ func NewRouter() *mux.Router {
 			fnHandler := route.HandlerFunc
 			err := validateHandler(fnHandler)
 			if err != nil {
+				fmt.Print(route.Name + " handler | ")
 				panic(err)
 			}
 
