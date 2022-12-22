@@ -35,8 +35,8 @@ func validateHandler(handler interface{}) error {
 		if ref.In(i).Kind() == reflect.Struct {
 			numOfStruct++
 		}
-		if ref.In(i).Kind() == reflect.Pointer {
-			return errors.New("arg cannot a pointer")
+		if ref.In(i).Kind() == reflect.Pointer && ref.In(i).String() != "*http.Request" {
+			return errors.New("pointer arg only allowed with type *http.request")
 		}
 	}
 	if numOfStruct > 1 {
@@ -61,22 +61,27 @@ func getCallParams(r *http.Request, refFunc interface{}) []reflect.Value {
 	for key := range tempParams {
 		urlParams = append(urlParams, tempParams[key])
 	}
-	
+
 	var callParams []reflect.Value
 	for _, v := range argTypes {
-		if v.Kind() != reflect.Struct {
-			if idx < len(urlParams) {
-				callParams = append(callParams, reflect.ValueOf(urlParams[idx]))
-				idx++
-			} else {
-				callParams = append(callParams, reflect.ValueOf(""))
-			}
+		if v.Kind() == reflect.Struct {
+			temp := reflect.New(v).Interface()
+			_ = json.Unmarshal([]byte(jsonString), &temp)
+			callParams = append(callParams, reflect.ValueOf(temp).Elem())
 			continue
 		}
 
-		temp := reflect.New(v).Interface()
-		_ = json.Unmarshal([]byte(jsonString), &temp)
-		callParams = append(callParams, reflect.ValueOf(temp).Elem())
+		if v.Kind() == reflect.Pointer {
+			callParams = append(callParams, reflect.ValueOf(r))
+			continue
+		}
+
+		if idx < len(urlParams) {
+			callParams = append(callParams, reflect.ValueOf(urlParams[idx]))
+			idx++
+		} else {
+			callParams = append(callParams, reflect.ValueOf(""))
+		}
 	}
 
 	return callParams
