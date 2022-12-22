@@ -6,6 +6,7 @@ type Response struct {
 	Status  int         `json:"status"`
 	Message string      `json:"message"`
 	Success bool        `json:"success"`
+	Errors  []Error     `json:"errors"`
 	Data    interface{} `json:"data"`
 }
 

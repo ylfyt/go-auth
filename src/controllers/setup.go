@@ -7,6 +7,7 @@ import (
 	"go-auth/src/ctx"
 	"go-auth/src/dtos"
 	"go-auth/src/middlewares"
+	"go-auth/src/utils"
 	"io"
 	"net/http"
 	"reflect"
@@ -134,6 +135,13 @@ func NewRouter() *mux.Router {
 					}
 
 					// TODO: Validate payload
+					errs := validate(&params[shouldBeValidateIdx])
+
+					if errs != nil {
+						sendResponse(w, r, utils.GetBadRequestResponse("VALIDATION_ERROR", errs...))
+						return
+					}
+
 					response := reflect.ValueOf(fnHandler).Call(params)[0].Interface().(dtos.Response)
 					sendResponse(w, r, response)
 				})
