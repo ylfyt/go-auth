@@ -13,14 +13,14 @@ var Routes = []ctx.Route{
 		Method:      "GET",
 		Pattern:     "/",
 		HandlerFunc: home,
-		Middlewares: []mux.MiddlewareFunc{
-			middlewares.Authorization,
-		},
 	},
 	{
 		Name:        "Ping",
 		Method:      "GET",
 		Pattern:     "/ping",
 		HandlerFunc: ping,
+		Middlewares: []mux.MiddlewareFunc{
+			middlewares.Authorization,
+		},
 	},
 }
