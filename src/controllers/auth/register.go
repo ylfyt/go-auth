@@ -23,7 +23,7 @@ func register(data dtos.Register) dtos.Response {
 	}
 	defer db.ReturnDbConnection(conn)
 
-	exists, err := db.GetRowCount(*conn, `
+	exists, err := db.GetRowCount(conn, `
 		SELECT count(*) FROM users WHERE username = $1
 	`, data.Username)
 	if err != nil {
@@ -37,7 +37,7 @@ func register(data dtos.Register) dtos.Response {
 
 	newId := uuid.New()
 
-	inserted, err := db.Write(*conn, `
+	inserted, err := db.Write(conn, `
 		INSERT INTO users VALUES($1, $2, $3, NOW())
 	`, newId, data.Username, string(hashedPassword))
 

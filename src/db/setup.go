@@ -9,22 +9,15 @@ import (
 
 const MAX_DB_CONN = 50
 
-type DbConnection struct {
-	Id    int
-	sqlDb *sql.DB
-}
-
-var dbConns = make([]DbConnection, MAX_DB_CONN)
-var dbConnChan = make(chan *DbConnection, MAX_DB_CONN)
+var dbConnChan = make(chan *sql.DB, MAX_DB_CONN)
 
 func init() {
 	for i := 0; i < MAX_DB_CONN; i++ {
-		dbConns[i].Id = i
-		dbConnChan <- &dbConns[i]
+		dbConnChan <- nil
 	}
 }
 
-func BorrowDbConnection() (*DbConnection, error) {
+func BorrowDbConnection() (*sql.DB, error) {
 	conn := <-dbConnChan
 	// Connect to DB
 	newDB, err := sql.Open("postgres", config.DB_CONNECTION)
@@ -38,13 +31,12 @@ func BorrowDbConnection() (*DbConnection, error) {
 		dbConnChan <- conn
 		return nil, err
 	}
-	conn.sqlDb = newDB
-	return conn, nil
+	return newDB, nil
 }
 
-func ReturnDbConnection(dbConn *DbConnection) {
+func ReturnDbConnection(dbConn *sql.DB) {
 	// Close connection
-	err := dbConn.sqlDb.Close()
+	err := dbConn.Close()
 	if err != nil {
 		fmt.Println("Failed to close connection")
 	}

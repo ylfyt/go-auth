@@ -17,7 +17,7 @@ func logoutAll(data dtos.Register) dtos.Response {
 	}
 	defer db.ReturnDbConnection(conn)
 
-	user, err := db.GetFirst[models.User](*conn, `
+	user, err := db.GetFirst[models.User](conn, `
 	SELECT * FROM users WHERE username = $1
 	`, data.Username)
 	if err != nil {
@@ -33,7 +33,7 @@ func logoutAll(data dtos.Register) dtos.Response {
 		return utils.GetErrorResponse(http.StatusBadRequest, "Username or password is wrong")
 	}
 
-	deleted, err := db.Write(*conn, `
+	deleted, err := db.Write(conn, `
 		DELETE FROM jwt_tokens WHERE user_id = $1
 	`, user.Id)
 	if err != nil {

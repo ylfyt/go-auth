@@ -15,7 +15,7 @@ func getUsers() dtos.Response {
 	}
 	defer db.ReturnDbConnection(conn)
 
-	users, err := db.Get[models.User](*conn, `
+	users, err := db.Get[models.User](conn, `
 	SELECT * FROM users
 	`)
 	if err != nil {
@@ -33,7 +33,7 @@ func getUserById(id string) dtos.Response{
 	}
 	defer db.ReturnDbConnection(conn)
 	
-	user, err := db.GetFirst[models.User](*conn, `
+	user, err := db.GetFirst[models.User](conn, `
 		SELECT * FROM users WHERE id = $1
 	`, id)
 

@@ -21,7 +21,7 @@ func createProduct(data dtos.CreateProduct) dtos.Response {
 
 	newId := uuid.New()
 	now := time.Now()
-	inserted, err := db.Write(*conn, `
+	inserted, err := db.Write(conn, `
 		INSERT INTO products(id, name, description, price, created_at)
 		VALUES($1, $2, $3, $4, $5)
 	`, newId, data.Name, data.Description, data.Price, now)

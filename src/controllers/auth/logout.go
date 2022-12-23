@@ -21,7 +21,7 @@ func logout(data dtos.RefreshPayload) dtos.Response {
 	}
 	defer db.ReturnDbConnection(conn)
 
-	deleted, err := db.Write(*conn, `
+	deleted, err := db.Write(conn, `
 		DELETE FROM jwt_tokens WHERE id = $1
 	`, jid)
 	if err != nil {

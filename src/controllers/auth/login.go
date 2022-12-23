@@ -19,7 +19,7 @@ func login(data dtos.Register) dtos.Response {
 	}
 	defer db.ReturnDbConnection(conn)
 
-	user, err := db.GetFirst[models.User](*conn, `
+	user, err := db.GetFirst[models.User](conn, `
 	SELECT * FROM users WHERE username = $1
 	`, data.Username)
 	if err != nil {
@@ -39,7 +39,7 @@ func login(data dtos.Register) dtos.Response {
 	if err != nil {
 		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong!")
 	}
-	inserted, _ := db.Write(*conn, `
+	inserted, _ := db.Write(conn, `
 		INSERT INTO jwt_tokens VALUES($1, $2, NOW())
 	`, jid, user.Id)
 	if inserted == 0 {

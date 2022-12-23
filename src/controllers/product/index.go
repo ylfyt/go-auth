@@ -16,7 +16,7 @@ func getProduct() dtos.Response {
 	}
 	defer db.ReturnDbConnection(conn)
 
-	products, err := db.Get[models.Product](*conn, `SELECT * FROM products`)
+	products, err := db.Get[models.Product](conn, `SELECT * FROM products`)
 	if err != nil {
 		fmt.Println("Err", err)
 		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong")

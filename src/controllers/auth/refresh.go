@@ -22,7 +22,7 @@ func refreshToken(data dtos.RefreshPayload) dtos.Response {
 	}
 	defer db.ReturnDbConnection(conn)
 
-	token, err := db.GetFirst[models.JwtToken](*conn, `
+	token, err := db.GetFirst[models.JwtToken](conn, `
 		SELECT * FROM jwt_tokens WHERE id = $1
 	`, jid)
 	if err != nil {
@@ -32,7 +32,7 @@ func refreshToken(data dtos.RefreshPayload) dtos.Response {
 		return utils.GetErrorResponse(http.StatusBadRequest, "Token is not found")
 	}
 
-	user, err := db.GetFirst[models.User](*conn, `
+	user, err := db.GetFirst[models.User](conn, `
 	SELECT * FROM users WHERE id = $1
 	`, token.UserId)
 	if err != nil {
@@ -43,14 +43,14 @@ func refreshToken(data dtos.RefreshPayload) dtos.Response {
 	if err != nil {
 		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong!")
 	}
-	inserted, _ := db.Write(*conn, `
+	inserted, _ := db.Write(conn, `
 		INSERT INTO jwt_tokens VALUES($1, $2, NOW())
 	`, newJid, user.Id)
 	if inserted == 0 {
 		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong!")
 	}
 
-	deleted, _ := db.Write(*conn, `
+	deleted, _ := db.Write(conn, `
 	DELETE FROM jwt_tokens WHERE id = $1
 	`, jid)
 	if deleted == 0 {

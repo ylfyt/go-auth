@@ -134,7 +134,6 @@ func NewRouter() *mux.Router {
 						return
 					}
 
-					// TODO: Validate payload
 					errs := validate(&params[shouldBeValidateIdx])
 
 					if errs != nil {

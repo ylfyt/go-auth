@@ -33,8 +33,8 @@ func snakeCaseToCamelCase(inputUnderScoreStr string) (camelCase string) {
 	return
 }
 
-func getData[T any](onlyOneRow bool, conn DbConnection, query string, params ...interface{}) ([]T, error) {
-	rows, err := conn.sqlDb.Query(query, params...)
+func getData[T any](onlyOneRow bool, conn *sql.DB, query string, params ...interface{}) ([]T, error) {
+	rows, err := conn.Query(query, params...)
 	if err != nil {
 		return nil, err
 	}
@@ -118,11 +118,11 @@ func getData[T any](onlyOneRow bool, conn DbConnection, query string, params ...
 	return finalValues, nil
 }
 
-func Get[T any](conn DbConnection, query string, params ...interface{}) ([]T, error) {
+func Get[T any](conn *sql.DB, query string, params ...interface{}) ([]T, error) {
 	return getData[T](false, conn, query, params...)
 }
 
-func GetFirst[T any](conn DbConnection, query string, params ...interface{}) (*T, error) {
+func GetFirst[T any](conn *sql.DB, query string, params ...interface{}) (*T, error) {
 	result, err := getData[T](true, conn, query, params...)
 	if err != nil {
 		return nil, err
@@ -134,8 +134,8 @@ func GetFirst[T any](conn DbConnection, query string, params ...interface{}) (*T
 	return &result[0], nil
 }
 
-func Write(conn DbConnection, query string, params ...interface{}) (int64, error) {
-	res, err := conn.sqlDb.Exec(query, params...)
+func Write(conn *sql.DB, query string, params ...interface{}) (int64, error) {
+	res, err := conn.Exec(query, params...)
 	if err != nil {
 		return 0, err
 	}
@@ -144,8 +144,8 @@ func Write(conn DbConnection, query string, params ...interface{}) (int64, error
 	return affectedRows, err
 }
 
-func GetRowCount(conn DbConnection, query string, params ...interface{}) (int, error) {
-	rows, err := conn.sqlDb.Query(query, params...)
+func GetRowCount(conn *sql.DB, query string, params ...interface{}) (int, error) {
+	rows, err := conn.Query(query, params...)
 
 	if err != nil {
 		return 0, err
@@ -162,8 +162,8 @@ func GetRowCount(conn DbConnection, query string, params ...interface{}) (int, e
 	return count, nil
 }
 
-func GetFieldFirst[T any](conn DbConnection, query string, params ...interface{}) (*T, error) {
-	rows, err := conn.sqlDb.Query(query, params...)
+func GetFieldFirst[T any](conn *sql.DB, query string, params ...interface{}) (*T, error) {
+	rows, err := conn.Query(query, params...)
 	if err != nil {
 		return nil, err
 	}
