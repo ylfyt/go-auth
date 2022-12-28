@@ -2,8 +2,8 @@ package middlewares
 
 import (
 	"context"
-	"fmt"
 	"go-auth/src/ctx"
+	"go-auth/src/l"
 	"net/http"
 	"time"
 )
@@ -13,7 +13,7 @@ func AccessLogger(next http.Handler) http.Handler {
 		reqId := time.Now().Format("REQ_2006-01-02_15:04:05.000")
 		r = r.WithContext(context.WithValue(r.Context(), ctx.ReqIdCtxKey, reqId))
 
-		fmt.Printf("[%s] NEW REQUEST: %s %s\n", reqId, r.Method, r.URL)
+		l.I("[%s] NEW REQUEST: %s %s", reqId, r.Method, r.URL)
 
 		next.ServeHTTP(w, r)
 	})

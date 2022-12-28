@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"go-auth/src/ctx"
 	"go-auth/src/dtos"
+	"go-auth/src/l"
 	"go-auth/src/middlewares"
 	"go-auth/src/utils"
 	"io"
@@ -98,10 +99,10 @@ func sendResponse(w http.ResponseWriter, r *http.Request, response dtos.Response
 	}
 	reqId := r.Context().Value(ctx.ReqIdCtxKey)
 	if response.Status == http.StatusOK {
-		fmt.Printf("[%s] REQUEST SUCCESS\n", reqId)
+		l.I("[%s] REQUEST SUCCESS", reqId)
 		return
 	}
-	fmt.Printf("[%s] REQUEST FAILED with RESPONSE:%+v\n", reqId, response)
+	l.I("[%s] REQUEST FAILED with RESPONSE:%+v\n", reqId, response)
 }
 
 func NewRouter() *mux.Router {
