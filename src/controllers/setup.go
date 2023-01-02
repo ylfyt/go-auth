@@ -136,7 +136,7 @@ func NewRouter() *mux.Router {
 	depMaps = make(map[string]interfaces.DependencyInjection)
 
 	var dependencies []interfaces.DependencyInjection
-	dependencies = append(dependencies, db.DbConnection{})
+	dependencies = append(dependencies, db.DbContext{})
 
 	for _, dep := range dependencies {
 		ref := reflect.TypeOf(dep)

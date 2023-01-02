@@ -68,6 +68,10 @@ func BorrowDbConnection() (*sql.DB, error) {
 }
 
 func ReturnDbConnection(dbConn *sql.DB) {
+	if dbConn == nil {
+		return
+	}
+
 	// Close connection
 	if isPoolMode {
 		dbConnChan <- dbConn
@@ -81,17 +85,24 @@ func ReturnDbConnection(dbConn *sql.DB) {
 	dbConnChan <- nil
 }
 
-type DbConnection struct {
-	Woow int
+type DbContext struct {
+	Db *sql.DB
 }
 
-func (me DbConnection) Get() interface{} {
+func (me DbContext) Get() interface{} {
 	// Borrow
-	fmt.Println("Borrow")
-	return DbConnection{}
+	conn, err := BorrowDbConnection()
+	if err != nil {
+		fmt.Println("Err", err)
+		return DbContext{
+			Db: nil,
+		}
+	}
+	return DbContext{
+		Db: conn,
+	}
 }
 
-func (me DbConnection) Return(interface{}) {
-	fmt.Println("Return")
-	// Return
+func (me DbContext) Return(ctx interface{}) {
+	ReturnDbConnection(ctx.(DbContext).Db)
 }

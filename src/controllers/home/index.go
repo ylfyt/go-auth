@@ -6,13 +6,22 @@ import (
 	"go-auth/src/db"
 	"go-auth/src/dtos"
 	"go-auth/src/l"
+	"go-auth/src/models"
 	"go-auth/src/utils"
 	"net/http"
 )
 
-func home(r *http.Request, db db.DbConnection) dtos.Response {
+func home(r *http.Request, dbCtx db.DbContext) dtos.Response {
 	reqId := ctx.GetReqIdCtx(r)
 	l.I(reqId)
-	fmt.Printf("Data: %+v\n", db)
-	return utils.GetSuccessResponse(reqId)
+
+	products, err := db.Get[models.Product](dbCtx.Db, `
+		SELECT * FROM products
+	`)
+
+	if err != nil {
+		fmt.Println("Err", err)
+	}
+
+	return utils.GetSuccessResponse(products)
 }
