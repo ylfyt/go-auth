@@ -80,3 +80,18 @@ func ReturnDbConnection(dbConn *sql.DB) {
 	}
 	dbConnChan <- nil
 }
+
+type DbConnection struct {
+	Woow int
+}
+
+func (me DbConnection) Get() interface{} {
+	// Borrow
+	fmt.Println("Borrow")
+	return DbConnection{}
+}
+
+func (me DbConnection) Return(interface{}) {
+	fmt.Println("Return")
+	// Return
+}

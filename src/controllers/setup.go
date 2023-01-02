@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"go-auth/src/ctx"
+	"go-auth/src/db"
 	"go-auth/src/dtos"
+	"go-auth/src/interfaces"
 	"go-auth/src/l"
 	"go-auth/src/middlewares"
 	"go-auth/src/utils"
@@ -19,6 +21,13 @@ import (
 const (
 	API_BASE_URL = "/api"
 )
+
+type DepInfo struct {
+	Key string
+	Idx int
+}
+
+var depMaps map[string]interfaces.DependencyInjection
 
 func validateHandler(handler interface{}) error {
 	ref := reflect.TypeOf(handler)
@@ -34,6 +43,9 @@ func validateHandler(handler interface{}) error {
 
 	numOfStruct := 0
 	for i := 0; i < ref.NumIn(); i++ {
+		if depMaps[ref.In(i).String()] != nil {
+			continue
+		}
 		if ref.In(i).Kind() == reflect.Struct {
 			numOfStruct++
 		}
@@ -48,7 +60,7 @@ func validateHandler(handler interface{}) error {
 	return nil
 }
 
-func getCallParams(r *http.Request, refFunc interface{}) ([]reflect.Value, int) {
+func getCallParams(r *http.Request, refFunc interface{}) ([]reflect.Value, int, []DepInfo) {
 	refType := reflect.TypeOf(refFunc)
 	var argTypes []reflect.Type
 	for i := 0; i < refType.NumIn(); i++ {
@@ -65,7 +77,17 @@ func getCallParams(r *http.Request, refFunc interface{}) ([]reflect.Value, int) 
 
 	structIdx := -1
 	var callParams []reflect.Value
+	var depIdxs []DepInfo
 	for i, v := range argTypes {
+		if depMaps[v.String()] != nil {
+			depIdxs = append(depIdxs, DepInfo{
+				Key: v.String(),
+				Idx: i,
+			})
+			var temp interface{}
+			callParams = append(callParams, reflect.ValueOf(temp))
+			continue
+		}
 		if v.Kind() == reflect.Pointer {
 			callParams = append(callParams, reflect.ValueOf(r))
 			continue
@@ -87,7 +109,7 @@ func getCallParams(r *http.Request, refFunc interface{}) ([]reflect.Value, int) 
 		}
 	}
 
-	return callParams, structIdx
+	return callParams, structIdx, depIdxs
 }
 
 func sendResponse(w http.ResponseWriter, r *http.Request, response dtos.Response) {
@@ -111,6 +133,16 @@ func NewRouter() *mux.Router {
 	router.Use(middlewares.Cors)
 	router.Use(middlewares.AccessLogger)
 
+	depMaps = make(map[string]interfaces.DependencyInjection)
+
+	var dependencies []interfaces.DependencyInjection
+	dependencies = append(dependencies, db.DbConnection{})
+
+	for _, dep := range dependencies {
+		ref := reflect.TypeOf(dep)
+		depMaps[ref.String()] = dep
+	}
+
 	for _, routes := range appRoutes {
 		for _, route := range routes {
 			fnHandler := route.HandlerFunc
@@ -128,7 +160,15 @@ func NewRouter() *mux.Router {
 				Path(route.Pattern).
 				Name(route.Name).
 				HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					params, shouldBeValidateIdx := getCallParams(r, fnHandler)
+					params, shouldBeValidateIdx, depIdxs := getCallParams(r, fnHandler)
+					if len(depIdxs) > 0 {
+						for _, v := range depIdxs {
+							depVal := depMaps[v.Key].Get()
+							params[v.Idx] = reflect.ValueOf(depVal)
+							defer depMaps[v.Key].Return(depVal)
+						}
+					}
+
 					if shouldBeValidateIdx == -1 {
 						response := reflect.ValueOf(fnHandler).Call(params)[0].Interface().(dtos.Response)
 						sendResponse(w, r, response)
