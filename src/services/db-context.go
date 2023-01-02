@@ -41,7 +41,7 @@ func init() {
 	}
 }
 
-func BorrowDbConnection() (*sql.DB, error) {
+func borrowDbConnection() (*sql.DB, error) {
 	conn := <-dbConnChan
 	// Connect to DB
 	if conn != nil {
@@ -67,7 +67,7 @@ func BorrowDbConnection() (*sql.DB, error) {
 	return newDB, nil
 }
 
-func ReturnDbConnection(dbConn *sql.DB) {
+func returnDbConnection(dbConn *sql.DB) {
 	if dbConn == nil {
 		return
 	}
@@ -91,7 +91,7 @@ type DbContext struct {
 
 func (me DbContext) Get() interface{} {
 	// Borrow
-	conn, err := BorrowDbConnection()
+	conn, err := borrowDbConnection()
 	if err != nil {
 		fmt.Println("Err", err)
 		return DbContext{
@@ -104,5 +104,5 @@ func (me DbContext) Get() interface{} {
 }
 
 func (me DbContext) Return(ctx interface{}) {
-	ReturnDbConnection(ctx.(DbContext).Db)
+	returnDbConnection(ctx.(DbContext).Db)
 }

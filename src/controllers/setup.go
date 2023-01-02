@@ -31,6 +31,8 @@ var depMaps map[string]interfaces.DependencyInjection
 
 func validateHandler(handler interface{}) error {
 	ref := reflect.TypeOf(handler)
+
+	// Checking for Handler Output
 	if ref.Kind() != reflect.Func {
 		return errors.New("handler should be a function")
 	}
@@ -41,18 +43,26 @@ func validateHandler(handler interface{}) error {
 		return errors.New("return value should be dto.response")
 	}
 
+	// Checking for Handler Input
 	numOfStruct := 0
 	for i := 0; i < ref.NumIn(); i++ {
+		// For Dependecies Input
 		if depMaps[ref.In(i).String()] != nil {
 			continue
 		}
+
+		// For Payload on Request Body
 		if ref.In(i).Kind() == reflect.Struct {
 			numOfStruct++
 		}
+
+		// For Http Request Pointer
 		if ref.In(i).Kind() == reflect.Pointer && ref.In(i).String() != "*http.Request" {
 			return errors.New("pointer arg only allowed with type *http.request")
 		}
 	}
+
+	// Limiting 1 Variable For Handling Request Payload
 	if numOfStruct > 1 {
 		return errors.New("number of struct arg should be 1")
 	}
@@ -68,7 +78,8 @@ func getCallParams(r *http.Request, refFunc interface{}) ([]reflect.Value, int, 
 		argTypes = append(argTypes, argType)
 	}
 
-	idx := 0
+	// Request Params Setup
+	paramIdx := 0
 	tempParams := mux.Vars(r)
 	var urlParams = make([]string, 0, len(tempParams))
 	for key := range tempParams {
@@ -76,9 +87,10 @@ func getCallParams(r *http.Request, refFunc interface{}) ([]reflect.Value, int, 
 	}
 
 	structIdx := -1
-	var callParams []reflect.Value
 	var depIdxs []DepInfo
+	var callParams []reflect.Value
 	for i, v := range argTypes {
+		// Dependecies Setup
 		if depMaps[v.String()] != nil {
 			depIdxs = append(depIdxs, DepInfo{
 				Key: v.String(),
@@ -88,10 +100,14 @@ func getCallParams(r *http.Request, refFunc interface{}) ([]reflect.Value, int, 
 			callParams = append(callParams, reflect.ValueOf(temp))
 			continue
 		}
+
+		// Applying Http Request Pointer
 		if v.Kind() == reflect.Pointer {
 			callParams = append(callParams, reflect.ValueOf(r))
 			continue
 		}
+
+		// Applying Request Body
 		if v.Kind() == reflect.Struct {
 			jsonString, _ := io.ReadAll(r.Body)
 			temp := reflect.New(v).Interface()
@@ -101,9 +117,12 @@ func getCallParams(r *http.Request, refFunc interface{}) ([]reflect.Value, int, 
 			continue
 		}
 
-		if idx < len(urlParams) {
-			callParams = append(callParams, reflect.ValueOf(urlParams[idx]))
-			idx++
+		// TODO: Applying Request URL Queries
+
+		// Applying Request Params
+		if paramIdx < len(urlParams) {
+			callParams = append(callParams, reflect.ValueOf(urlParams[paramIdx]))
+			paramIdx++
 		} else {
 			callParams = append(callParams, reflect.ValueOf(""))
 		}
@@ -129,15 +148,15 @@ func sendResponse(w http.ResponseWriter, r *http.Request, response dtos.Response
 
 func NewRouter() *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
+	depMaps = make(map[string]interfaces.DependencyInjection)
+	var dependencies []interfaces.DependencyInjection
 
+	// Middleware Setup
 	router.Use(middlewares.Cors)
 	router.Use(middlewares.AccessLogger)
 
-	depMaps = make(map[string]interfaces.DependencyInjection)
-
-	var dependencies []interfaces.DependencyInjection
+	// Dependency Injection Setup
 	dependencies = append(dependencies, services.DbContext{})
-
 	for _, dep := range dependencies {
 		ref := reflect.TypeOf(dep)
 		depMaps[ref.String()] = dep
@@ -161,6 +180,8 @@ func NewRouter() *mux.Router {
 				Name(route.Name).
 				HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					params, shouldBeValidateIdx, depIdxs := getCallParams(r, fnHandler)
+
+					// Applying Dependecies
 					if len(depIdxs) > 0 {
 						for _, v := range depIdxs {
 							depVal := depMaps[v.Key].Get()
@@ -169,22 +190,26 @@ func NewRouter() *mux.Router {
 						}
 					}
 
+					// Calling route handler
 					if shouldBeValidateIdx == -1 {
 						response := reflect.ValueOf(fnHandler).Call(params)[0].Interface().(dtos.Response)
 						sendResponse(w, r, response)
 						return
 					}
 
+					// Applying Validation For Request Payload
 					errs := validate(&params[shouldBeValidateIdx])
-
 					if errs != nil {
 						sendResponse(w, r, utils.GetBadRequestResponse("VALIDATION_ERROR", errs...))
 						return
 					}
 
+					// Calling route handler
 					response := reflect.ValueOf(fnHandler).Call(params)[0].Interface().(dtos.Response)
 					sendResponse(w, r, response)
 				})
+
+			// Applying Middlewares For each Route
 			for _, mid := range route.Middlewares {
 				sub.Use(mid)
 			}
