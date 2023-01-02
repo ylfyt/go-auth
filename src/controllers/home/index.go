@@ -7,11 +7,12 @@ import (
 	"go-auth/src/dtos"
 	"go-auth/src/l"
 	"go-auth/src/models"
+	"go-auth/src/services"
 	"go-auth/src/utils"
 	"net/http"
 )
 
-func home(r *http.Request, dbCtx db.DbContext) dtos.Response {
+func home(r *http.Request, dbCtx services.DbContext) dtos.Response {
 	reqId := ctx.GetReqIdCtx(r)
 	l.I(reqId)
 

@@ -9,19 +9,13 @@ import (
 	"net/http"
 )
 
-func logout(data dtos.RefreshPayload) dtos.Response {
+func logout(data dtos.RefreshPayload, dbCtx services.DbContext) dtos.Response {
 	valid, jid := services.VerifyRefreshToken(data.RefreshToken)
 	if !valid {
 		return utils.GetErrorResponse(http.StatusBadRequest, "Token is not valid")
 	}
 
-	conn, err := db.BorrowDbConnection()
-	if err != nil {
-		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong!")
-	}
-	defer db.ReturnDbConnection(conn)
-
-	deleted, err := db.Write(conn, `
+	deleted, err := db.Write(dbCtx.Db, `
 		DELETE FROM jwt_tokens WHERE id = $1
 	`, jid)
 	if err != nil {

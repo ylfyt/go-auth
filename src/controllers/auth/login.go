@@ -12,14 +12,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func login(data dtos.Register) dtos.Response {
-	conn, err := db.BorrowDbConnection()
-	if err != nil {
-		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong!")
-	}
-	defer db.ReturnDbConnection(conn)
-
-	user, err := db.GetFirst[models.User](conn, `
+func login(data dtos.Register, dbCtx services.DbContext) dtos.Response {
+	user, err := db.GetFirst[models.User](dbCtx.Db, `
 	SELECT * FROM users WHERE username = $1
 	`, data.Username)
 	if err != nil {
@@ -39,7 +33,7 @@ func login(data dtos.Register) dtos.Response {
 	if err != nil {
 		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong!")
 	}
-	inserted, _ := db.Write(conn, `
+	inserted, _ := db.Write(dbCtx.Db, `
 		INSERT INTO jwt_tokens VALUES($1, $2, NOW())
 	`, jid, user.Id)
 	if inserted == 0 {

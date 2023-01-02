@@ -4,20 +4,15 @@ import (
 	"go-auth/src/db"
 	"go-auth/src/dtos"
 	"go-auth/src/models"
+	"go-auth/src/services"
 	"go-auth/src/utils"
 	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
-func logoutAll(data dtos.Register) dtos.Response {
-	conn, err := db.BorrowDbConnection()
-	if err != nil {
-		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong!")
-	}
-	defer db.ReturnDbConnection(conn)
-
-	user, err := db.GetFirst[models.User](conn, `
+func logoutAll(data dtos.Register, dbCtx services.DbContext) dtos.Response {
+	user, err := db.GetFirst[models.User](dbCtx.Db, `
 	SELECT * FROM users WHERE username = $1
 	`, data.Username)
 	if err != nil {
@@ -33,7 +28,7 @@ func logoutAll(data dtos.Register) dtos.Response {
 		return utils.GetErrorResponse(http.StatusBadRequest, "Username or password is wrong")
 	}
 
-	deleted, err := db.Write(conn, `
+	deleted, err := db.Write(dbCtx.Db, `
 		DELETE FROM jwt_tokens WHERE user_id = $1
 	`, user.Id)
 	if err != nil {

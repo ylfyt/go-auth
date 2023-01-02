@@ -10,19 +10,13 @@ import (
 	"net/http"
 )
 
-func refreshToken(data dtos.RefreshPayload) dtos.Response {
+func refreshToken(data dtos.RefreshPayload, dbCtx services.DbContext) dtos.Response {
 	valid, jid := services.VerifyRefreshToken(data.RefreshToken)
 	if !valid {
 		return utils.GetErrorResponse(http.StatusBadRequest, "Token is not valid")
 	}
 
-	conn, err := db.BorrowDbConnection()
-	if err != nil {
-		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong!")
-	}
-	defer db.ReturnDbConnection(conn)
-
-	token, err := db.GetFirst[models.JwtToken](conn, `
+	token, err := db.GetFirst[models.JwtToken](dbCtx.Db, `
 		SELECT * FROM jwt_tokens WHERE id = $1
 	`, jid)
 	if err != nil {
@@ -32,7 +26,7 @@ func refreshToken(data dtos.RefreshPayload) dtos.Response {
 		return utils.GetErrorResponse(http.StatusBadRequest, "Token is not found")
 	}
 
-	user, err := db.GetFirst[models.User](conn, `
+	user, err := db.GetFirst[models.User](dbCtx.Db, `
 	SELECT * FROM users WHERE id = $1
 	`, token.UserId)
 	if err != nil {
@@ -43,14 +37,14 @@ func refreshToken(data dtos.RefreshPayload) dtos.Response {
 	if err != nil {
 		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong!")
 	}
-	inserted, _ := db.Write(conn, `
+	inserted, _ := db.Write(dbCtx.Db, `
 		INSERT INTO jwt_tokens VALUES($1, $2, NOW())
 	`, newJid, user.Id)
 	if inserted == 0 {
 		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong!")
 	}
 
-	deleted, _ := db.Write(conn, `
+	deleted, _ := db.Write(dbCtx.Db, `
 	DELETE FROM jwt_tokens WHERE id = $1
 	`, jid)
 	if deleted == 0 {

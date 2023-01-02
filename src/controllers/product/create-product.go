@@ -5,23 +5,17 @@ import (
 	"go-auth/src/db"
 	"go-auth/src/dtos"
 	"go-auth/src/models"
+	"go-auth/src/services"
 	"go-auth/src/utils"
-	"net/http"
 	"time"
 
 	"github.com/google/uuid"
 )
 
-func createProduct(data dtos.CreateProduct) dtos.Response {
-	conn, err := db.BorrowDbConnection()
-	if err != nil {
-		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong")
-	}
-	defer db.ReturnDbConnection(conn)
-
+func createProduct(data dtos.CreateProduct, dbCtx services.DbContext) dtos.Response {
 	newId := uuid.New()
 	now := time.Now()
-	inserted, err := db.Write(conn, `
+	inserted, err := db.Write(dbCtx.Db, `
 		INSERT INTO products(id, name, description, price, created_at)
 		VALUES($1, $2, $3, $4, $5)
 	`, newId, data.Name, data.Description, data.Price, now)

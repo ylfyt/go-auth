@@ -5,11 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"go-auth/src/ctx"
-	"go-auth/src/db"
 	"go-auth/src/dtos"
 	"go-auth/src/interfaces"
 	"go-auth/src/l"
 	"go-auth/src/middlewares"
+	"go-auth/src/services"
 	"go-auth/src/utils"
 	"io"
 	"net/http"
@@ -136,7 +136,7 @@ func NewRouter() *mux.Router {
 	depMaps = make(map[string]interfaces.DependencyInjection)
 
 	var dependencies []interfaces.DependencyInjection
-	dependencies = append(dependencies, db.DbContext{})
+	dependencies = append(dependencies, services.DbContext{})
 
 	for _, dep := range dependencies {
 		ref := reflect.TypeOf(dep)
