@@ -48,10 +48,34 @@ func getData[T any](onlyOneRow bool, conn *sql.DB, query string, params ...inter
 		return nil, fmt.Errorf("there is no field in query")
 	}
 
+	var tempData T
+	dataRef := reflect.TypeOf(tempData)
+
 	var fieldNames = make(map[string]string)
+	for i := 0; i < dataRef.NumField(); i++ {
+		field := dataRef.Field(i)
+		columnName := strings.TrimSpace(field.Tag.Get("col"))
+		if columnName == "" {
+			continue
+		}
+		fieldNames[columnName] = field.Name
+	}
+
 	for _, v := range columnTypes {
+		if fieldNames[v.Name()] != "" {
+			continue
+		}
 		camelCase := snakeCaseToCamelCase(v.Name())
-		fieldNames[v.Name()] = camelCase
+		isExist := false
+		for _, val := range fieldNames {
+			if val == camelCase {
+				isExist = true
+				break
+			}
+		}
+		if !isExist {
+			fieldNames[v.Name()] = camelCase
+		}
 	}
 
 	scannedData := make([]interface{}, columnNum)
@@ -77,7 +101,6 @@ func getData[T any](onlyOneRow bool, conn *sql.DB, query string, params ...inter
 			return nil, err
 		}
 
-		var tempData T
 		for i, v := range columnTypes {
 			var val interface{}
 			if z, ok := (scannedData[i]).(*sql.NullBool); ok {
@@ -94,9 +117,13 @@ func getData[T any](onlyOneRow bool, conn *sql.DB, query string, params ...inter
 				val = scannedData[i]
 			}
 
-			field := reflect.ValueOf(&tempData).Elem().FieldByName(fieldNames[v.Name()])
+			fieldName := fieldNames[v.Name()]
+			if fieldName == "" {
+				continue
+			}
+			field := reflect.ValueOf(&tempData).Elem().FieldByName(fieldName)
 			if (field == reflect.Value{}) {
-				return nil, fmt.Errorf("cannot find %s or %s field in %T", fieldNames[v.Name()], v.Name(), tempData)
+				continue
 			}
 			if field.Type().String() != "uuid.UUID" {
 				field.Set(reflect.ValueOf(val))

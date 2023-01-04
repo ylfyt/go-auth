@@ -22,6 +22,7 @@ func home(r *http.Request, dbCtx services.DbContext) dtos.Response {
 
 	if err != nil {
 		fmt.Println("Err", err)
+		return utils.GetInternalErrorResponse("Something wrong")
 	}
 
 	return utils.GetSuccessResponse(products)

@@ -22,7 +22,7 @@ const (
 	API_BASE_URL = "/api"
 )
 
-type DepInfo struct {
+type DependencyInfo struct {
 	Key string
 	Idx int
 }
@@ -70,7 +70,7 @@ func validateHandler(handler interface{}) error {
 	return nil
 }
 
-func getCallParams(r *http.Request, refFunc interface{}) ([]reflect.Value, int, []DepInfo) {
+func getCallParams(r *http.Request, refFunc interface{}) ([]reflect.Value, int, []DependencyInfo) {
 	refType := reflect.TypeOf(refFunc)
 	var argTypes []reflect.Type
 	for i := 0; i < refType.NumIn(); i++ {
@@ -87,12 +87,12 @@ func getCallParams(r *http.Request, refFunc interface{}) ([]reflect.Value, int, 
 	}
 
 	structIdx := -1
-	var depIdxs []DepInfo
+	var depIdxs []DependencyInfo
 	var callParams []reflect.Value
 	for i, v := range argTypes {
 		// Dependecies Setup
 		if depMaps[v.String()] != nil {
-			depIdxs = append(depIdxs, DepInfo{
+			depIdxs = append(depIdxs, DependencyInfo{
 				Key: v.String(),
 				Idx: i,
 			})

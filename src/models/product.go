@@ -7,6 +7,6 @@ type Product struct {
 	CreatedAt   string    `json:"createdAt"`
 	UpdatedAt   string    `json:"updatedAt"`
 	Name        string    `json:"name"`
-	Description string    `json:"description"`
+	Description string    `json:"description" col:"desc"`
 	Price       int64     `json:"price"`
 }
