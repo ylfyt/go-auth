@@ -132,8 +132,6 @@ func getData[T any](onlyOneRow bool, conn *sql.DB, query string, params ...inter
 		}
 
 		for i, v := range columnTypes {
-			var val interface{} = getInterfaceValue(scannedData[i])
-
 			fieldName := fieldNames[v.Name()]
 			if fieldName == "" {
 				continue
@@ -142,6 +140,8 @@ func getData[T any](onlyOneRow bool, conn *sql.DB, query string, params ...inter
 			if (field == reflect.Value{}) {
 				continue
 			}
+
+			var val interface{} = getInterfaceValue(scannedData[i])
 			if field.Type().String() != "uuid.UUID" {
 				field.Set(reflect.ValueOf(val))
 				continue
@@ -166,7 +166,7 @@ func Get[T any](conn *sql.DB, query string, params ...interface{}) ([]T, error) 
 	return getData[T](false, conn, query, params...)
 }
 
-func GetFirst[T any](conn *sql.DB, query string, params ...interface{}) (*T, error) {
+func GetOne[T any](conn *sql.DB, query string, params ...interface{}) (*T, error) {
 	result, err := getData[T](true, conn, query, params...)
 	if err != nil {
 		return nil, err
@@ -206,7 +206,7 @@ func GetRowCount(conn *sql.DB, query string, params ...interface{}) (int, error)
 	return count, nil
 }
 
-func GetFieldFirst[T any](conn *sql.DB, query string, params ...interface{}) (T, error) {
+func GetFieldOne[T any](conn *sql.DB, query string, params ...interface{}) (T, error) {
 	rows, err := conn.Query(query, params...)
 	var result T
 	if err != nil {

@@ -16,7 +16,7 @@ func refreshToken(data dtos.RefreshPayload, dbCtx services.DbContext) dtos.Respo
 		return utils.GetErrorResponse(http.StatusBadRequest, "Token is not valid")
 	}
 
-	token, err := db.GetFirst[models.JwtToken](dbCtx.Db, `
+	token, err := db.GetOne[models.JwtToken](dbCtx.Db, `
 		SELECT * FROM jwt_tokens WHERE id = $1
 	`, jid)
 	if err != nil {
@@ -26,7 +26,7 @@ func refreshToken(data dtos.RefreshPayload, dbCtx services.DbContext) dtos.Respo
 		return utils.GetErrorResponse(http.StatusBadRequest, "Token is not found")
 	}
 
-	user, err := db.GetFirst[models.User](dbCtx.Db, `
+	user, err := db.GetOne[models.User](dbCtx.Db, `
 	SELECT * FROM users WHERE id = $1
 	`, token.UserId)
 	if err != nil {

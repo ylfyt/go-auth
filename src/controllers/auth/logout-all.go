@@ -12,7 +12,7 @@ import (
 )
 
 func logoutAll(data dtos.Register, dbCtx services.DbContext) dtos.Response {
-	user, err := db.GetFirst[models.User](dbCtx.Db, `
+	user, err := db.GetOne[models.User](dbCtx.Db, `
 	SELECT * FROM users WHERE username = $1
 	`, data.Username)
 	if err != nil {

@@ -21,7 +21,7 @@ func getUsers(dbCtx services.DbContext) dtos.Response {
 }
 
 func getUserById(id string, dbCtx services.DbContext) dtos.Response {
-	user, err := db.GetFirst[models.User](dbCtx.Db, `
+	user, err := db.GetOne[models.User](dbCtx.Db, `
 		SELECT * FROM users WHERE id = $1
 	`, id)
 
