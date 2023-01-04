@@ -33,24 +33,7 @@ func snakeCaseToCamelCase(inputUnderScoreStr string) (camelCase string) {
 	return
 }
 
-func getData[T any](onlyOneRow bool, conn *sql.DB, query string, params ...interface{}) ([]T, error) {
-	rows, err := conn.Query(query, params...)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	columnTypes, err := rows.ColumnTypes()
-	if err != nil {
-		return nil, err
-	}
-	columnNum := len(columnTypes)
-	if columnNum == 0 {
-		return nil, fmt.Errorf("there is no field in query")
-	}
-
-	var tempData T
-	dataRef := reflect.TypeOf(tempData)
-
+func getFieldNames(dataRef reflect.Type, columnTypes []*sql.ColumnType) map[string]string {
 	var fieldNames = make(map[string]string)
 	for i := 0; i < dataRef.NumField(); i++ {
 		field := dataRef.Field(i)
@@ -77,22 +60,69 @@ func getData[T any](onlyOneRow bool, conn *sql.DB, query string, params ...inter
 			fieldNames[v.Name()] = camelCase
 		}
 	}
+	return fieldNames
+}
 
-	scannedData := make([]interface{}, columnNum)
+func getInterfaceValue(data interface{}) interface{} {
+	if z, ok := (data).(*sql.NullBool); ok {
+		return z.Bool
+	}
+	if z, ok := (data).(*sql.NullString); ok {
+		return z.String
+	}
+	if z, ok := (data).(*sql.NullInt64); ok {
+		return z.Int64
+	}
+	if z, ok := (data).(*sql.NullFloat64); ok {
+		return z.Float64
+	}
+	if z, ok := (data).(*sql.NullInt32); ok {
+		return z.Int32
+	}
+
+	return data
+}
+
+func getDataContainer(columnTypes []*sql.ColumnType) []interface{} {
+	if len(columnTypes) == 0 {
+		return nil
+	}
+	container := make([]interface{}, len(columnTypes))
 	for i, v := range columnTypes {
 		switch v.DatabaseTypeName() {
 		case "VARCHAR", "TEXT", "UUID", "TIMESTAMP":
-			scannedData[i] = new(sql.NullString)
+			container[i] = new(sql.NullString)
 		case "BOOL":
-			scannedData[i] = new(sql.NullBool)
+			container[i] = new(sql.NullBool)
 		case "INT8":
-			scannedData[i] = new(sql.NullInt64)
+			container[i] = new(sql.NullInt64)
 		case "INT4":
-			scannedData[i] = new(sql.NullInt32)
+			container[i] = new(sql.NullInt32)
 		default:
-			scannedData[i] = new(sql.NullString)
+			container[i] = new(sql.NullString)
 		}
 	}
+	return container
+}
+
+func getData[T any](onlyOneRow bool, conn *sql.DB, query string, params ...interface{}) ([]T, error) {
+	rows, err := conn.Query(query, params...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	columnTypes, err := rows.ColumnTypes()
+	if err != nil {
+		return nil, err
+	}
+
+	scannedData := getDataContainer(columnTypes)
+	if scannedData == nil {
+		return nil, fmt.Errorf("there is no field in query")
+	}
+
+	var tempData T
+	fieldNames := getFieldNames(reflect.TypeOf(tempData), columnTypes)
 
 	var finalValues []T = make([]T, 0)
 	for rows.Next() {
@@ -102,20 +132,7 @@ func getData[T any](onlyOneRow bool, conn *sql.DB, query string, params ...inter
 		}
 
 		for i, v := range columnTypes {
-			var val interface{}
-			if z, ok := (scannedData[i]).(*sql.NullBool); ok {
-				val = z.Bool
-			} else if z, ok := (scannedData[i]).(*sql.NullString); ok {
-				val = z.String
-			} else if z, ok := (scannedData[i]).(*sql.NullInt64); ok {
-				val = z.Int64
-			} else if z, ok := (scannedData[i]).(*sql.NullFloat64); ok {
-				val = z.Float64
-			} else if z, ok := (scannedData[i]).(*sql.NullInt32); ok {
-				val = z.Int32
-			} else {
-				val = scannedData[i]
-			}
+			var val interface{} = getInterfaceValue(scannedData[i])
 
 			fieldName := fieldNames[v.Name()]
 			if fieldName == "" {
@@ -189,92 +206,61 @@ func GetRowCount(conn *sql.DB, query string, params ...interface{}) (int, error)
 	return count, nil
 }
 
-func GetFieldFirst[T any](conn *sql.DB, query string, params ...interface{}) (*T, error) {
+func GetFieldFirst[T any](conn *sql.DB, query string, params ...interface{}) (T, error) {
 	rows, err := conn.Query(query, params...)
+	var result T
 	if err != nil {
-		return nil, err
+		return result, err
 	}
 	defer rows.Close()
 
 	columnTypes, err := rows.ColumnTypes()
 
 	if err != nil {
-		return nil, err
+		return result, err
 	}
 
-	columnNum := len(columnTypes)
-	if columnNum == 0 {
-		return nil, fmt.Errorf("there is no field in query")
+	scannedData := getDataContainer(columnTypes)
+	if scannedData == nil {
+		return result, fmt.Errorf("there is no field in query")
 	}
 
-	scannedData := make([]interface{}, columnNum)
-
-	for i, v := range columnTypes {
-		switch v.DatabaseTypeName() {
-		case "VARCHAR", "TEXT", "UUID", "TIMESTAMP":
-			scannedData[i] = new(sql.NullString)
-		case "BOOL":
-			scannedData[i] = new(sql.NullBool)
-		case "INT8":
-			scannedData[i] = new(sql.NullInt64)
-		case "INT4":
-			scannedData[i] = new(sql.NullInt32)
-		default:
-			scannedData[i] = new(sql.NullString)
-		}
+	if !rows.Next() {
+		return result, nil
 	}
 
-	if rows.Next() {
-		err := rows.Scan(scannedData...)
+	err = rows.Scan(scannedData...)
+	if err != nil {
+		return result, err
+	}
+
+	var val interface{} = getInterfaceValue(scannedData[0])
+
+	typeName := reflect.TypeOf(result).String()
+	if typeName == "uuid.UUID" {
+		newUuid, err := uuid.Parse(val.(string))
 		if err != nil {
-			return nil, err
+			return result, err
 		}
-
-		var val interface{}
-		if z, ok := (scannedData[0]).(*sql.NullBool); ok {
-			val = z.Bool
-		} else if z, ok := (scannedData[0]).(*sql.NullString); ok {
-			val = z.String
-		} else if z, ok := (scannedData[0]).(*sql.NullInt64); ok {
-			val = z.Int64
-		} else if z, ok := (scannedData[0]).(*sql.NullFloat64); ok {
-			val = z.Float64
-		} else if z, ok := (scannedData[0]).(*sql.NullInt32); ok {
-			val = z.Int32
-		} else {
-			val = scannedData[0]
-		}
-
-		var data T
-		typeName := reflect.TypeOf(data).String()
-		if typeName == "uuid.UUID" {
-			newUuid, err := uuid.Parse(val.(string))
-			if err != nil {
-				return nil, err
-			}
-			var iUuid interface{} = newUuid
-			data = iUuid.(T)
-
-			return &data, nil
-		}
-
-		if typeName == "time.Time" {
-			if val.(string) == "" {
-				return nil, nil
-			}
-			newTime, err := time.Parse(time.RFC3339Nano, val.(string))
-			if err != nil {
-				return nil, err
-			}
-			var iTime interface{} = newTime
-			data = iTime.(T)
-
-			return &data, nil
-		}
-
-		data = val.(T)
-		return &data, nil
+		var iUuid interface{} = newUuid
+		return iUuid.(T), nil
 	}
 
-	return nil, nil
+	if typeName == "time.Time" {
+		if val.(string) == "" {
+			return result, nil
+		}
+		newTime, err := time.Parse(time.RFC3339Nano, val.(string))
+		if err != nil {
+			return result, err
+		}
+		var iTime interface{} = newTime
+		return iTime.(T), nil
+	}
+
+	if z, ok := val.(T); ok {
+		return z, nil
+	}
+
+	return result, fmt.Errorf("return type is not valid")
 }
