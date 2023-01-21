@@ -1,14 +1,14 @@
 package auth
 
 import (
+	"fmt"
 	"go-auth/src/db"
 	"go-auth/src/dtos"
 	"go-auth/src/models"
 	"go-auth/src/services"
 	"go-auth/src/utils"
 	"net/http"
-
-	"golang.org/x/crypto/bcrypt"
+	"strings"
 )
 
 func logoutAll(data dtos.Register, dbCtx services.DbContext) dtos.Response {
@@ -23,8 +23,12 @@ func logoutAll(data dtos.Register, dbCtx services.DbContext) dtos.Response {
 		return utils.GetErrorResponse(http.StatusBadRequest, "Username or password is wrong")
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(data.Password))
-	if err != nil {
+	passwordData := strings.Split(user.Password, ":")
+	if len(passwordData) != 2 {
+		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong!")
+	}
+	isValid := utils.VerifyPassword(passwordData[0], data.Password, user.Username, []byte(passwordData[1]))
+	if !isValid {
 		return utils.GetErrorResponse(http.StatusBadRequest, "Username or password is wrong")
 	}
 
@@ -39,5 +43,5 @@ func logoutAll(data dtos.Register, dbCtx services.DbContext) dtos.Response {
 		return utils.GetErrorResponse(http.StatusBadRequest, "There is no logged in")
 	}
 
-	return utils.GetSuccessResponse(true)
+	return utils.GetSuccessResponse(fmt.Sprintf("Logout from %d devices", deleted))
 }

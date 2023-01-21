@@ -9,15 +9,9 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func register(data dtos.Register, dbCtx services.DbContext) dtos.Response {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(data.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong!")
-	}
-
 	exists, err := db.GetRowCount(dbCtx.Db, `
 		SELECT count(*) FROM users WHERE username = $1
 	`, data.Username)
@@ -30,11 +24,15 @@ func register(data dtos.Register, dbCtx services.DbContext) dtos.Response {
 		return utils.GetErrorResponse(http.StatusBadRequest, "Username already exist")
 	}
 
+	rawSalt := utils.GenerateRawSalt()
+	realSalt := utils.GetRealSalt(rawSalt, data.Username)
+	hashedPassword := utils.HashPassword(data.Password, realSalt)
+
 	newId := uuid.New()
 
 	inserted, err := db.Write(dbCtx.Db, `
 		INSERT INTO users VALUES($1, $2, $3, NOW())
-	`, newId, data.Username, string(hashedPassword))
+	`, newId, data.Username, hashedPassword+":"+string(rawSalt))
 
 	if err != nil {
 		fmt.Println("Error:", err)

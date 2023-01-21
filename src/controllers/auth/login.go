@@ -8,8 +8,7 @@ import (
 	"go-auth/src/services"
 	"go-auth/src/utils"
 	"net/http"
-
-	"golang.org/x/crypto/bcrypt"
+	"strings"
 )
 
 func login(data dtos.Register, dbCtx services.DbContext) dtos.Response {
@@ -24,8 +23,12 @@ func login(data dtos.Register, dbCtx services.DbContext) dtos.Response {
 		return utils.GetErrorResponse(http.StatusBadRequest, "Username or password is wrong")
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(data.Password))
-	if err != nil {
+	passwordData := strings.Split(user.Password, ":")
+	if len(passwordData) != 2 {
+		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong!")
+	}
+	isValid := utils.VerifyPassword(passwordData[0], data.Password, user.Username, []byte(passwordData[1]))
+	if !isValid {
 		return utils.GetErrorResponse(http.StatusBadRequest, "Username or password is wrong")
 	}
 
@@ -45,7 +48,7 @@ func login(data dtos.Register, dbCtx services.DbContext) dtos.Response {
 		Token: dtos.TokenPayload{
 			RefreshToken: refresh,
 			AccessToken:  access,
-			ExpiredIn: int64(config.JWT_ACCESS_TOKEN_EXPIRY_TIME),
+			ExpiredIn:    int64(config.JWT_ACCESS_TOKEN_EXPIRY_TIME),
 		},
 	})
 }
