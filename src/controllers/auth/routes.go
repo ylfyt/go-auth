@@ -3,6 +3,8 @@ package auth
 import (
 	"go-auth/src/ctx"
 	"go-auth/src/middlewares"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 var Routes = []ctx.Route{
@@ -41,7 +43,7 @@ var Routes = []ctx.Route{
 		Method:      "GET",
 		Pattern:     "/auth/users",
 		HandlerFunc: getUsers,
-		Middlewares: []interface{}{
+		Middlewares: []func(c *fiber.Ctx) error{
 			middlewares.Authorization,
 		},
 	},
@@ -50,7 +52,7 @@ var Routes = []ctx.Route{
 		Method:      "GET",
 		Pattern:     "/auth/users/{id}",
 		HandlerFunc: getUserById,
-		Middlewares: []interface{}{
+		Middlewares: []func(c *fiber.Ctx) error{
 			// middlewares.Authorization,
 		},
 	},

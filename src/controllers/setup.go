@@ -147,13 +147,14 @@ func NewRouter() *fiber.App {
 	app := fiber.New(fiber.Config{
 		StrictRouting: true,
 	})
+	api := app.Group("/api")
 
 	depMaps = make(map[string]interfaces.DependencyInjection)
 	var dependencies []interfaces.DependencyInjection
 
 	// Middleware Setup
 	// app.Use(middlewares.Cors)
-	app.Use(middlewares.AccessLogger)
+	api.Use(middlewares.AccessLogger)
 
 	// Dependency Injection Setup
 	dependencies = append(dependencies, services.DbContext{})
@@ -175,7 +176,8 @@ func NewRouter() *fiber.App {
 			// sub := router.
 			// Methods(route.Method, "OPTIONS").Subrouter()
 
-			app.Add(route.Method, route.Pattern, func(c *fiber.Ctx) error {
+			// Applying Middlewares For each Route
+			handlers := append(route.Middlewares, func(c *fiber.Ctx) error {
 				params, shouldBeValidateIdx, depIdxs := getCallParams(c, fnHandler)
 
 				// Applying Dependecies
@@ -207,10 +209,7 @@ func NewRouter() *fiber.App {
 				return nil
 			})
 
-			// Applying Middlewares For each Route
-			for _, mid := range route.Middlewares {
-				app.Use(route.Pattern, mid)
-			}
+			api.Add(route.Method, route.Pattern, handlers...)
 		}
 	}
 

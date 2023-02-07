@@ -3,6 +3,8 @@ package product
 import (
 	"go-auth/src/ctx"
 	"go-auth/src/middlewares"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 var Routes = []ctx.Route{
@@ -17,7 +19,7 @@ var Routes = []ctx.Route{
 		Method:      "POST",
 		Pattern:     "/product",
 		HandlerFunc: createProduct,
-		Middlewares: []interface{}{
+		Middlewares: []func(c *fiber.Ctx) error{
 			middlewares.Authorization,
 		},
 	},
