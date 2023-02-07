@@ -11,11 +11,10 @@ import (
 	"go-auth/src/middlewares"
 	"go-auth/src/services"
 	"go-auth/src/utils"
-	"io"
 	"net/http"
 	"reflect"
 
-	"github.com/gorilla/mux"
+	"github.com/gofiber/fiber/v2"
 )
 
 const (
@@ -57,7 +56,7 @@ func validateHandler(handler interface{}) error {
 		}
 
 		// For Http Request Pointer
-		if ref.In(i).Kind() == reflect.Pointer && ref.In(i).String() != "*http.Request" {
+		if ref.In(i).Kind() == reflect.Pointer && ref.In(i).String() != "*fiber.Ctx" {
 			return errors.New("pointer arg only allowed with type *http.request")
 		}
 	}
@@ -70,7 +69,7 @@ func validateHandler(handler interface{}) error {
 	return nil
 }
 
-func getCallParams(r *http.Request, refFunc interface{}) ([]reflect.Value, int, []DependencyInfo) {
+func getCallParams(c *fiber.Ctx, refFunc interface{}) ([]reflect.Value, int, []DependencyInfo) {
 	refType := reflect.TypeOf(refFunc)
 	var argTypes []reflect.Type
 	for i := 0; i < refType.NumIn(); i++ {
@@ -80,7 +79,7 @@ func getCallParams(r *http.Request, refFunc interface{}) ([]reflect.Value, int, 
 
 	// Request Params Setup
 	paramIdx := 0
-	tempParams := mux.Vars(r)
+	tempParams := c.AllParams()
 	var urlParams = make([]string, 0, len(tempParams))
 	for key := range tempParams {
 		urlParams = append(urlParams, tempParams[key])
@@ -103,15 +102,15 @@ func getCallParams(r *http.Request, refFunc interface{}) ([]reflect.Value, int, 
 
 		// Applying Http Request Pointer
 		if v.Kind() == reflect.Pointer {
-			callParams = append(callParams, reflect.ValueOf(r))
+			callParams = append(callParams, reflect.ValueOf(c))
 			continue
 		}
 
 		// Applying Request Body
 		if v.Kind() == reflect.Struct {
-			jsonString, _ := io.ReadAll(r.Body)
+			jsonString := c.Body()
 			temp := reflect.New(v).Interface()
-			_ = json.Unmarshal([]byte(jsonString), &temp)
+			_ = json.Unmarshal(jsonString, &temp)
 			callParams = append(callParams, reflect.ValueOf(temp).Elem())
 			structIdx = i
 			continue
@@ -131,14 +130,12 @@ func getCallParams(r *http.Request, refFunc interface{}) ([]reflect.Value, int, 
 	return callParams, structIdx, depIdxs
 }
 
-func sendResponse(w http.ResponseWriter, r *http.Request, response dtos.Response) {
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(response.Status)
-	err := json.NewEncoder(w).Encode(response)
+func sendResponse(c *fiber.Ctx, response dtos.Response) {
+	err := c.JSON(response)
 	if err != nil {
 		fmt.Println("Failed to send response", err)
 	}
-	reqId := r.Context().Value(ctx.ReqIdCtxKey)
+	reqId := c.Context().Value(ctx.ReqIdCtxKey)
 	if response.Status == http.StatusOK {
 		l.I("[%s] REQUEST SUCCESS", reqId)
 		return
@@ -146,14 +143,17 @@ func sendResponse(w http.ResponseWriter, r *http.Request, response dtos.Response
 	l.I("[%s] REQUEST FAILED with RESPONSE:%+v\n", reqId, response)
 }
 
-func NewRouter() *mux.Router {
-	router := mux.NewRouter().StrictSlash(true)
+func NewRouter() *fiber.App {
+	app := fiber.New(fiber.Config{
+		StrictRouting: true,
+	})
+
 	depMaps = make(map[string]interfaces.DependencyInjection)
 	var dependencies []interfaces.DependencyInjection
 
 	// Middleware Setup
-	router.Use(middlewares.Cors)
-	router.Use(middlewares.AccessLogger)
+	// app.Use(middlewares.Cors)
+	app.Use(middlewares.AccessLogger)
 
 	// Dependency Injection Setup
 	dependencies = append(dependencies, services.DbContext{})
@@ -172,49 +172,47 @@ func NewRouter() *mux.Router {
 			}
 
 			fmt.Printf("API SETUP: %s | m:%d | %s\n", route.Pattern, len(route.Middlewares), route.Method)
-			sub := router.
-				Methods(route.Method, "OPTIONS").Subrouter()
+			// sub := router.
+			// Methods(route.Method, "OPTIONS").Subrouter()
 
-			sub.PathPrefix(API_BASE_URL).
-				Path(route.Pattern).
-				Name(route.Name).
-				HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					params, shouldBeValidateIdx, depIdxs := getCallParams(r, fnHandler)
+			app.Add(route.Method, route.Pattern, func(c *fiber.Ctx) error {
+				params, shouldBeValidateIdx, depIdxs := getCallParams(c, fnHandler)
 
-					// Applying Dependecies
-					if len(depIdxs) > 0 {
-						for _, v := range depIdxs {
-							depVal := depMaps[v.Key].Get()
-							params[v.Idx] = reflect.ValueOf(depVal)
-							defer depMaps[v.Key].Return(depVal)
-						}
+				// Applying Dependecies
+				if len(depIdxs) > 0 {
+					for _, v := range depIdxs {
+						depVal := depMaps[v.Key].Get()
+						params[v.Idx] = reflect.ValueOf(depVal)
+						defer depMaps[v.Key].Return(depVal)
 					}
+				}
 
-					// Calling route handler
-					if shouldBeValidateIdx == -1 {
-						response := reflect.ValueOf(fnHandler).Call(params)[0].Interface().(dtos.Response)
-						sendResponse(w, r, response)
-						return
-					}
-
-					// Applying Validation For Request Payload
-					errs := validate(&params[shouldBeValidateIdx])
-					if errs != nil {
-						sendResponse(w, r, utils.GetBadRequestResponse("VALIDATION_ERROR", errs...))
-						return
-					}
-
-					// Calling route handler
+				// Calling route handler
+				if shouldBeValidateIdx == -1 {
 					response := reflect.ValueOf(fnHandler).Call(params)[0].Interface().(dtos.Response)
-					sendResponse(w, r, response)
-				})
+					sendResponse(c, response)
+					return nil
+				}
+
+				// Applying Validation For Request Payload
+				errs := validate(&params[shouldBeValidateIdx])
+				if errs != nil {
+					sendResponse(c, utils.GetBadRequestResponse("VALIDATION_ERROR", errs...))
+					return nil
+				}
+
+				// Calling route handler
+				response := reflect.ValueOf(fnHandler).Call(params)[0].Interface().(dtos.Response)
+				sendResponse(c, response)
+				return nil
+			})
 
 			// Applying Middlewares For each Route
 			for _, mid := range route.Middlewares {
-				sub.Use(mid)
+				app.Use(route.Pattern, mid)
 			}
 		}
 	}
 
-	return router
+	return app
 }

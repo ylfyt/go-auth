@@ -9,13 +9,13 @@ import (
 	"go-auth/src/models"
 	"go-auth/src/services"
 	"go-auth/src/utils"
-	"net/http"
+
+	"github.com/gofiber/fiber/v2"
 )
 
-func home(r *http.Request, dbCtx services.DbContext) dtos.Response {
-	reqId := ctx.GetReqIdCtx(r)
-	l.I(reqId)
-
+func home(c *fiber.Ctx, dbCtx services.DbContext) dtos.Response {
+	reqId := c.Locals(ctx.ReqIdCtxKey)
+	l.I(reqId.(string))
 	product, err := db.GetOne[models.Product](dbCtx.Db, `SELECT * FROM products LIMIT 1`)
 
 	if err != nil {
