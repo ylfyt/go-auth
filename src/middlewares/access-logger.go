@@ -12,7 +12,7 @@ func AccessLogger(c *fiber.Ctx) error {
 	reqId := time.Now().Format("REQ_2006-01-02_15:04:05.000")
 	c.Locals(ctx.ReqIdCtxKey, reqId)
 
-	l.I("[%s] NEW REQUEST:", reqId)
+	l.I("[%s] NEW REQUEST: %s %s", reqId, c.Method(), c.OriginalURL())
 
 	return c.Next()
 }

@@ -50,7 +50,7 @@ var Routes = []ctx.Route{
 	{
 		Name:        "AuthGetUsersById",
 		Method:      "GET",
-		Pattern:     "/auth/users/{id}",
+		Pattern:     "/auth/users/:id",
 		HandlerFunc: getUserById,
 		Middlewares: []func(c *fiber.Ctx) error{
 			// middlewares.Authorization,

@@ -25,7 +25,7 @@ func validate(authHeader string) (bool, models.AccessClaims) {
 
 func Authorization(c *fiber.Ctx) error {
 	reqId := c.Context().Value(ctx.ReqIdCtxKey)
-	authHeader := c.GetReqHeaders()["authorization"]
+	authHeader := c.GetReqHeaders()["Authorization"]
 
 	valid, claims := validate(authHeader)
 	if valid {

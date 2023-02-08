@@ -143,7 +143,7 @@ func sendResponse(c *fiber.Ctx, response dtos.Response) {
 	l.I("[%s] REQUEST FAILED with RESPONSE:%+v\n", reqId, response)
 }
 
-func NewRouter() *fiber.App {
+func New() *fiber.App {
 	app := fiber.New(fiber.Config{
 		StrictRouting: true,
 	})
