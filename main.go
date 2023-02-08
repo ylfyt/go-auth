@@ -1,14 +1,19 @@
 package main
 
-import (
-	"fmt"
-	"go-auth/src/config"
-	"go-auth/src/controllers"
-)
+import "go-auth/src/meta"
 
 func main() {
-	app := controllers.New()
+	app := meta.New(&meta.Config{
+		BaseUrl: "/api",
+	})
 
-	fmt.Println("Server is listening on port", config.LISTEN_PORT)
-	app.Listen(":" + config.LISTEN_PORT)
+	app.Map("GET", "/", func() meta.ResponseDto {
+		return meta.ResponseDto{
+			Status:  200,
+			Success: true,
+			Data:    "ok",
+		}
+	})
+
+	app.Run(3000)
 }
