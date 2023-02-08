@@ -19,6 +19,10 @@ type App struct {
 	endPoints []EndPoint
 }
 
+type Ctx struct {
+	fiber.Ctx
+}
+
 type Error struct {
 	Field string `json:"field"`
 	Tag   string `json:"tag"`

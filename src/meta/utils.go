@@ -40,7 +40,7 @@ func (app *App) validateHandler(handler interface{}) error {
 		}
 
 		// For Http Request Pointer
-		if ref.In(i).Kind() == reflect.Pointer && ref.In(i).String() != "*fiber.Ctx" {
+		if ref.In(i).Kind() == reflect.Pointer && ref.In(i).String() != "*meta.Ctx" {
 			return errors.New("pointer arg only allowed with type *http.request")
 		}
 	}
@@ -86,7 +86,8 @@ func getCallParams(c *fiber.Ctx, refFunc interface{}) ([]reflect.Value, int) {
 
 		// Applying Http Request Pointer
 		if v.Kind() == reflect.Pointer {
-			callParams = append(callParams, reflect.ValueOf(c))
+			ctx := Ctx{*c}
+			callParams = append(callParams, reflect.ValueOf(&ctx))
 			continue
 		}
 
