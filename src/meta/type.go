@@ -6,6 +6,7 @@ type EndPoint struct {
 	Method      string
 	Path        string
 	HandlerFunc interface{}
+	Middlewares []func(c *fiber.Ctx) error
 }
 
 type Config struct {
@@ -17,10 +18,6 @@ type App struct {
 	router    fiber.Router
 	config    *Config
 	endPoints []EndPoint
-}
-
-type Ctx struct {
-	fiber.Ctx
 }
 
 type Error struct {

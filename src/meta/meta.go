@@ -23,7 +23,7 @@ func New(config *Config) *App {
 	}
 }
 
-func (app *App) Map(method string, path string, handler interface{}) {
+func (app *App) Map(method string, path string, handler interface{}, middlewares ...func(c *fiber.Ctx) error) {
 	err := app.validateHandler(handler)
 	if err != nil {
 		panic(err)
@@ -32,11 +32,22 @@ func (app *App) Map(method string, path string, handler interface{}) {
 		Method:      method,
 		Path:        path,
 		HandlerFunc: handler,
+		Middlewares: middlewares,
 	})
+}
+
+func (app *App) AddEndPoint(endPoints ...EndPoint) {
+	for _, v := range endPoints {
+		err := app.validateHandler(v.HandlerFunc)
+		if err != nil {
+			panic(err)
+		}
+	}
+	app.endPoints = append(app.endPoints, endPoints...)
 }
 
 func (app *App) Run(port int) {
 	app.setup()
 	fmt.Println("App running on port", port)
-	app.fiberApp.Listen(fmt.Sprintf(":%d", port))
+	app.fiberApp.Listen(fmt.Sprintf("0.0.0.0:%d", port))
 }

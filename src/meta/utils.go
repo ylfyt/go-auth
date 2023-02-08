@@ -40,8 +40,8 @@ func (app *App) validateHandler(handler interface{}) error {
 		}
 
 		// For Http Request Pointer
-		if ref.In(i).Kind() == reflect.Pointer && ref.In(i).String() != "*meta.Ctx" {
-			return errors.New("pointer arg only allowed with type *http.request")
+		if ref.In(i).Kind() == reflect.Pointer && ref.In(i).String() != "*fiber.Ctx" {
+			return errors.New("pointer arg only allowed with type *fiber.ctx")
 		}
 	}
 
@@ -86,8 +86,7 @@ func getCallParams(c *fiber.Ctx, refFunc interface{}) ([]reflect.Value, int) {
 
 		// Applying Http Request Pointer
 		if v.Kind() == reflect.Pointer {
-			ctx := Ctx{*c}
-			callParams = append(callParams, reflect.ValueOf(&ctx))
+			callParams = append(callParams, reflect.ValueOf(c))
 			continue
 		}
 
@@ -153,38 +152,36 @@ func sendResponse(c *fiber.Ctx, response ResponseDto) {
 
 func (app *App) setup() {
 	for _, v := range app.endPoints {
-		fmt.Printf("API SETUP: %s | %s\n", v.Path, v.Method)
-		var handlers []func(c *fiber.Ctx) error = []func(c *fiber.Ctx) error{
-			func(c *fiber.Ctx) error {
-				params, shouldBeValidateIdx := getCallParams(c, v.HandlerFunc)
+		fn := v.HandlerFunc
+		handlers := append(v.Middlewares, func(c *fiber.Ctx) error {
+			params, shouldBeValidateIdx := getCallParams(c, fn)
 
-				// Calling route handler
-				if shouldBeValidateIdx == -1 {
-					response := reflect.ValueOf(v.HandlerFunc).Call(params)[0].Interface().(ResponseDto)
-					sendResponse(c, response)
-					return nil
-				}
-
-				// Applying Validation For Request Payload
-				errs := validate(&params[shouldBeValidateIdx])
-				if errs != nil {
-					sendResponse(c, ResponseDto{
-						Status:  fiber.ErrBadRequest.Code,
-						Message: "VALIDATION_ERROR",
-						Errors:  errs,
-						Success: false,
-						Data:    nil,
-					})
-					return nil
-				}
-
-				// Calling route handler
-				response := reflect.ValueOf(v.HandlerFunc).Call(params)[0].Interface().(ResponseDto)
+			// Calling route handler
+			if shouldBeValidateIdx == -1 {
+				response := reflect.ValueOf(fn).Call(params)[0].Interface().(ResponseDto)
 				sendResponse(c, response)
 				return nil
-			},
-		}
+			}
 
+			// Applying Validation For Request Payload
+			errs := validate(&params[shouldBeValidateIdx])
+			if errs != nil {
+				sendResponse(c, ResponseDto{
+					Status:  fiber.ErrBadRequest.Code,
+					Message: "VALIDATION_ERROR",
+					Errors:  errs,
+					Success: false,
+					Data:    nil,
+				})
+				return nil
+			}
+			// Calling route handler
+			response := reflect.ValueOf(fn).Call(params)[0].Interface().(ResponseDto)
+			sendResponse(c, response)
+			return nil
+		})
+		
+		fmt.Printf("API SETUP: %s | %s\n", v.Path, v.Method)
 		app.router.Add(v.Method, v.Path, handlers...)
 	}
 }
