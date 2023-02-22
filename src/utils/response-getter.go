@@ -1,12 +1,12 @@
 package utils
 
 import (
-	"go-auth/src/dtos"
+	"go-auth/src/meta"
 	"net/http"
 )
 
-func GetSuccessResponse(data interface{}) dtos.Response {
-	return dtos.Response{
+func GetSuccessResponse(data interface{}) meta.ResponseDto {
+	return meta.ResponseDto{
 		Status:  http.StatusOK,
 		Message: "",
 		Success: true,
@@ -15,12 +15,12 @@ func GetSuccessResponse(data interface{}) dtos.Response {
 	}
 }
 
-func GetErrorResponse(statusCode int, message string, errors ...dtos.Error) dtos.Response {
+func GetErrorResponse(statusCode int, message string, errors ...meta.Error) meta.ResponseDto {
 	err := errors
 	if err == nil {
-		err = []dtos.Error{}
+		err = []meta.Error{}
 	}
-	return dtos.Response{
+	return meta.ResponseDto{
 		Status:  statusCode,
 		Message: message,
 		Errors:  err,
@@ -29,14 +29,14 @@ func GetErrorResponse(statusCode int, message string, errors ...dtos.Error) dtos
 	}
 }
 
-func GetBadRequestResponse(message string, errors ...dtos.Error) dtos.Response {
+func GetBadRequestResponse(message string, errors ...meta.Error) meta.ResponseDto {
 	return GetErrorResponse(http.StatusBadRequest, message, errors...)
 }
 
-func GetInternalErrorResponse(message string, errors ...dtos.Error) dtos.Response {
+func GetInternalErrorResponse(message string, errors ...meta.Error) meta.ResponseDto {
 	return GetErrorResponse(http.StatusInternalServerError, message, errors...)
 }
 
-func GetUnauthorizedResponse(message string, errors ...dtos.Error) dtos.Response {
+func GetUnauthorizedResponse(message string, errors ...meta.Error) meta.ResponseDto {
 	return GetErrorResponse(http.StatusUnauthorized, message, errors...)
 }

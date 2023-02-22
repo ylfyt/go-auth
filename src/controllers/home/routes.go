@@ -1,23 +1,21 @@
 package home
 
 import (
-	"go-auth/src/ctx"
+	"go-auth/src/meta"
 	"go-auth/src/middlewares"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-var Routes = []ctx.Route{
+var Routes = []meta.EndPoint{
 	{
-		Name:        "Home",
 		Method:      "GET",
-		Pattern:     "/",
+		Path:        "/",
 		HandlerFunc: home,
 	},
 	{
-		Name:        "Ping",
 		Method:      "GET",
-		Pattern:     "/ping",
+		Path:        "/ping",
 		HandlerFunc: ping,
 		Middlewares: []func(c *fiber.Ctx) error{
 			middlewares.Authorization,

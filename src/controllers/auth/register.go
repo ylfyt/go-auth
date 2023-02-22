@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go-auth/src/db"
 	"go-auth/src/dtos"
+	"go-auth/src/meta"
 	"go-auth/src/services"
 	"go-auth/src/utils"
 	"net/http"
@@ -11,7 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func register(data dtos.Register, dbCtx services.DbContext) dtos.Response {
+func register(data dtos.Register, dbCtx services.DbContext) meta.ResponseDto {
 	exists, err := db.GetRowCount(dbCtx.Db, `
 		SELECT count(*) FROM users WHERE username = $1
 	`, data.Username)

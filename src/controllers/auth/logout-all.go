@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go-auth/src/db"
 	"go-auth/src/dtos"
+	"go-auth/src/meta"
 	"go-auth/src/models"
 	"go-auth/src/services"
 	"go-auth/src/utils"
@@ -11,7 +12,7 @@ import (
 	"strings"
 )
 
-func logoutAll(data dtos.Register, dbCtx services.DbContext) dtos.Response {
+func logoutAll(data dtos.Register, dbCtx services.DbContext) meta.ResponseDto {
 	user, err := db.GetOne[models.User](dbCtx.Db, `
 	SELECT * FROM users WHERE username = $1
 	`, data.Username)

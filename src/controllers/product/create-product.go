@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go-auth/src/db"
 	"go-auth/src/dtos"
+	"go-auth/src/meta"
 	"go-auth/src/models"
 	"go-auth/src/services"
 	"go-auth/src/utils"
@@ -12,7 +13,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func createProduct(data dtos.CreateProduct, dbCtx services.DbContext) dtos.Response {
+func createProduct(data dtos.CreateProduct, dbCtx services.DbContext) meta.ResponseDto {
 	newId := uuid.New()
 	now := time.Now()
 	inserted, err := db.Write(dbCtx.Db, `

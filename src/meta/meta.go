@@ -9,7 +9,7 @@ import (
 
 func New(config *Config) *App {
 	fiberApp := fiber.New(fiber.Config{
-		StrictRouting: true,
+		StrictRouting: false,
 		JSONEncoder:   json.Marshal,
 		JSONDecoder:   json.Unmarshal,
 	})
@@ -40,6 +40,7 @@ func (app *App) AddEndPoint(endPoints ...EndPoint) {
 	for _, v := range endPoints {
 		err := app.validateHandler(v.HandlerFunc)
 		if err != nil {
+			fmt.Print(v.Path, " ")
 			panic(err)
 		}
 	}

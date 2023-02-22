@@ -1,23 +1,21 @@
 package product
 
 import (
-	"go-auth/src/ctx"
+	"go-auth/src/meta"
 	"go-auth/src/middlewares"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-var Routes = []ctx.Route{
+var Routes = []meta.EndPoint{
 	{
-		Name:        "GetProduct",
 		Method:      "GET",
-		Pattern:     "/product",
+		Path:        "/product",
 		HandlerFunc: getProduct,
 	},
 	{
-		Name:        "CreateProduct",
 		Method:      "POST",
-		Pattern:     "/product",
+		Path:        "/product",
 		HandlerFunc: createProduct,
 		Middlewares: []func(c *fiber.Ctx) error{
 			middlewares.Authorization,

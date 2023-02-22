@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"go-auth/src/db"
 	"go-auth/src/dtos"
+	"go-auth/src/meta"
 	"go-auth/src/services"
 	"go-auth/src/utils"
 	"net/http"
 )
 
-func logout(data dtos.RefreshPayload, dbCtx services.DbContext) dtos.Response {
+func logout(data dtos.RefreshPayload, dbCtx services.DbContext) meta.ResponseDto {
 	valid, jid := services.VerifyRefreshToken(data.RefreshToken)
 	if !valid {
 		return utils.GetErrorResponse(http.StatusBadRequest, "Token is not valid")

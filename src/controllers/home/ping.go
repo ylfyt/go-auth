@@ -1,10 +1,10 @@
 package home
 
 import (
-	"go-auth/src/dtos"
+	"go-auth/src/meta"
 	"go-auth/src/utils"
 )
 
-func ping() dtos.Response {
+func ping() meta.ResponseDto {
 	return utils.GetSuccessResponse("ok")
 }

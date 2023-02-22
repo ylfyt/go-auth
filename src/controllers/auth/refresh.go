@@ -4,13 +4,14 @@ import (
 	"go-auth/src/config"
 	"go-auth/src/db"
 	"go-auth/src/dtos"
+	"go-auth/src/meta"
 	"go-auth/src/models"
 	"go-auth/src/services"
 	"go-auth/src/utils"
 	"net/http"
 )
 
-func refreshToken(data dtos.RefreshPayload, dbCtx services.DbContext) dtos.Response {
+func refreshToken(data dtos.RefreshPayload, dbCtx services.DbContext) meta.ResponseDto {
 	valid, jid := services.VerifyRefreshToken(data.RefreshToken)
 	if !valid {
 		return utils.GetErrorResponse(http.StatusBadRequest, "Token is not valid")
