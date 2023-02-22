@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"database/sql"
 	"go-auth/src/config"
 	"go-auth/src/db"
 	"go-auth/src/dtos"
@@ -11,13 +12,13 @@ import (
 	"net/http"
 )
 
-func refreshToken(data dtos.RefreshPayload, dbCtx services.DbContext) meta.ResponseDto {
+func refreshToken(data dtos.RefreshPayload, dbCtx *sql.DB) meta.ResponseDto {
 	valid, jid := services.VerifyRefreshToken(data.RefreshToken)
 	if !valid {
 		return utils.GetErrorResponse(http.StatusBadRequest, "Token is not valid")
 	}
 
-	token, err := db.GetOne[models.JwtToken](dbCtx.Db, `
+	token, err := db.GetOne[models.JwtToken](dbCtx, `
 		SELECT * FROM jwt_tokens WHERE id = $1
 	`, jid)
 	if err != nil {
@@ -27,7 +28,7 @@ func refreshToken(data dtos.RefreshPayload, dbCtx services.DbContext) meta.Respo
 		return utils.GetErrorResponse(http.StatusBadRequest, "Token is not found")
 	}
 
-	user, err := db.GetOne[models.User](dbCtx.Db, `
+	user, err := db.GetOne[models.User](dbCtx, `
 	SELECT * FROM users WHERE id = $1
 	`, token.UserId)
 	if err != nil {
@@ -38,14 +39,14 @@ func refreshToken(data dtos.RefreshPayload, dbCtx services.DbContext) meta.Respo
 	if err != nil {
 		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong!")
 	}
-	inserted, _ := db.Write(dbCtx.Db, `
+	inserted, _ := db.Write(dbCtx, `
 		INSERT INTO jwt_tokens VALUES($1, $2, NOW())
 	`, newJid, user.Id)
 	if inserted == 0 {
 		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong!")
 	}
 
-	deleted, _ := db.Write(dbCtx.Db, `
+	deleted, _ := db.Write(dbCtx, `
 	DELETE FROM jwt_tokens WHERE id = $1
 	`, jid)
 	if deleted == 0 {

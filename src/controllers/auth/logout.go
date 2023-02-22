@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"database/sql"
 	"fmt"
 	"go-auth/src/db"
 	"go-auth/src/dtos"
@@ -10,13 +11,13 @@ import (
 	"net/http"
 )
 
-func logout(data dtos.RefreshPayload, dbCtx services.DbContext) meta.ResponseDto {
+func logout(data dtos.RefreshPayload, dbCtx *sql.DB) meta.ResponseDto {
 	valid, jid := services.VerifyRefreshToken(data.RefreshToken)
 	if !valid {
 		return utils.GetErrorResponse(http.StatusBadRequest, "Token is not valid")
 	}
 
-	deleted, err := db.Write(dbCtx.Db, `
+	deleted, err := db.Write(dbCtx, `
 		DELETE FROM jwt_tokens WHERE id = $1
 	`, jid)
 	if err != nil {

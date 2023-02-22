@@ -14,10 +14,11 @@ type Config struct {
 }
 
 type App struct {
-	fiberApp  *fiber.App
-	router    fiber.Router
-	config    *Config
-	endPoints []EndPoint
+	fiberApp     *fiber.App
+	router       fiber.Router
+	config       *Config
+	endPoints    []EndPoint
+	dependencies map[string]any
 }
 
 type Error struct {

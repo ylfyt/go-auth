@@ -1,19 +1,19 @@
 package auth
 
 import (
+	"database/sql"
 	"fmt"
 	"go-auth/src/db"
 	"go-auth/src/dtos"
 	"go-auth/src/meta"
-	"go-auth/src/services"
 	"go-auth/src/utils"
 	"net/http"
 
 	"github.com/google/uuid"
 )
 
-func register(data dtos.Register, dbCtx services.DbContext) meta.ResponseDto {
-	exists, err := db.GetRowCount(dbCtx.Db, `
+func register(data dtos.Register, dbCtx *sql.DB) meta.ResponseDto {
+	exists, err := db.GetRowCount(dbCtx, `
 		SELECT count(*) FROM users WHERE username = $1
 	`, data.Username)
 	if err != nil {
@@ -31,7 +31,7 @@ func register(data dtos.Register, dbCtx services.DbContext) meta.ResponseDto {
 
 	newId := uuid.New()
 
-	inserted, err := db.Write(dbCtx.Db, `
+	inserted, err := db.Write(dbCtx, `
 		INSERT INTO users VALUES($1, $2, $3, NOW())
 	`, newId, data.Username, hashedPassword+":"+string(rawSalt))
 

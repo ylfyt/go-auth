@@ -28,11 +28,10 @@ func (app *App) validateHandler(handler interface{}) error {
 	// Checking for Handler Input
 	numOfStruct := 0
 	for i := 0; i < ref.NumIn(); i++ {
-		// TODO: Dependecies
-		// // For Dependecies Input
-		// if depMaps[ref.In(i).String()] != nil {
-		// 	continue
-		// }
+		// For Dependecies Input
+		if app.dependencies[ref.In(i).String()] != nil {
+			continue
+		}
 
 		// For Payload on Request Body
 		if ref.In(i).Kind() == reflect.Struct {
@@ -53,7 +52,7 @@ func (app *App) validateHandler(handler interface{}) error {
 	return nil
 }
 
-func getCallParams(c *fiber.Ctx, refFunc interface{}) ([]reflect.Value, int) {
+func (app *App) getCallParams(c *fiber.Ctx, refFunc interface{}) ([]reflect.Value, int) {
 	refType := reflect.TypeOf(refFunc)
 	var argTypes []reflect.Type
 	for i := 0; i < refType.NumIn(); i++ {
@@ -70,19 +69,13 @@ func getCallParams(c *fiber.Ctx, refFunc interface{}) ([]reflect.Value, int) {
 	}
 
 	structIdx := -1
-	// var depIdxs []DependencyInfo
 	var callParams []reflect.Value
 	for i, v := range argTypes {
 		// Dependecies Setup
-		// if depMaps[v.String()] != nil {
-		// 	depIdxs = append(depIdxs, DependencyInfo{
-		// 		Key: v.String(),
-		// 		Idx: i,
-		// 	})
-		// 	var temp interface{}
-		// 	callParams = append(callParams, reflect.ValueOf(temp))
-		// 	continue
-		// }
+		if app.dependencies[v.String()] != nil {
+			callParams = append(callParams, reflect.ValueOf(app.dependencies[v.String()]))
+			continue
+		}
 
 		// Applying Http Request Pointer
 		if v.Kind() == reflect.Pointer {
@@ -154,7 +147,7 @@ func (app *App) setup() {
 	for _, v := range app.endPoints {
 		fn := v.HandlerFunc
 		handlers := append(v.Middlewares, func(c *fiber.Ctx) error {
-			params, shouldBeValidateIdx := getCallParams(c, fn)
+			params, shouldBeValidateIdx := app.getCallParams(c, fn)
 
 			// Calling route handler
 			if shouldBeValidateIdx == -1 {

@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"go-auth/src/ctx"
-	"go-auth/src/dtos"
+	"go-auth/src/meta"
 	"go-auth/src/models"
 	"go-auth/src/services"
 
@@ -34,7 +34,7 @@ func Authorization(c *fiber.Ctx) error {
 		return c.Next()
 	}
 
-	response := dtos.Response{
+	response := meta.ResponseDto{
 		Status:  http.StatusUnauthorized,
 		Message: "Unauthorized",
 		Success: false,

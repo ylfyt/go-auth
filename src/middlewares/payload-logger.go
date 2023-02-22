@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"go-auth/src/ctx"
-	"go-auth/src/dtos"
+	"go-auth/src/meta"
 	"io"
 	"net/http"
 )
@@ -23,7 +23,7 @@ func PayloadLogger(next http.Handler) http.Handler {
 			return
 		}
 
-		response := dtos.Response{
+		response := meta.ResponseDto{
 			Status:  http.StatusInternalServerError,
 			Message: "Something wrong",
 			Success: false,
