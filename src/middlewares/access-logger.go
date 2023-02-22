@@ -1,8 +1,7 @@
 package middlewares
 
 import (
-	"go-auth/src/ctx"
-	"go-auth/src/l"
+	"go-auth/src/utils"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -10,9 +9,7 @@ import (
 
 func AccessLogger(c *fiber.Ctx) error {
 	reqId := time.Now().Format("REQ_2006-01-02_15:04:05.000")
-	c.Locals(ctx.ReqIdCtxKey, reqId)
-
-	l.I("[%s] NEW REQUEST: %s %s", reqId, c.Method(), c.OriginalURL())
+	utils.SetContext(c, "reqId", reqId)
 
 	return c.Next()
 }

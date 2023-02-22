@@ -18,9 +18,9 @@ func New(config *Config) *App {
 	router := fiberApp.Group(config.BaseUrl)
 
 	return &App{
-		fiberApp: fiberApp,
-		config:   config,
-		router:   router,
+		fiberApp:     fiberApp,
+		config:       config,
+		router:       router,
 		dependencies: make(map[string]any),
 	}
 }
@@ -53,4 +53,12 @@ func (app *App) Run(port int) {
 
 func AddService[T any](app *App, service *T) {
 	app.dependencies[reflect.TypeOf(service).String()] = service
+}
+
+func (app *App) Use(path string, handler func(c *fiber.Ctx) error) {
+	if path == "" {
+		app.fiberApp.Use(handler)
+		return
+	}
+	app.fiberApp.Use(path, handler)
 }

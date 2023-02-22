@@ -5,12 +5,12 @@ import (
 	"net/http"
 	"strings"
 
-	"go-auth/src/ctx"
 	"go-auth/src/meta"
 	"go-auth/src/models"
 	"go-auth/src/services"
 
 	"github.com/gofiber/fiber/v2"
+	"go-auth/src/utils"
 )
 
 func validate(authHeader string) (bool, models.AccessClaims) {
@@ -24,13 +24,13 @@ func validate(authHeader string) (bool, models.AccessClaims) {
 }
 
 func Authorization(c *fiber.Ctx) error {
-	reqId := c.Context().Value(ctx.ReqIdCtxKey)
+	reqId := utils.GetContext[string](c, "reqId")
 	authHeader := c.GetReqHeaders()["Authorization"]
 
 	valid, claims := validate(authHeader)
 	if valid {
-		c.Locals(ctx.UserClaimsCtxKey, claims)
-		fmt.Printf("[%s] REQUEST AUTHORIZED with User Claims: %+v\n", reqId, claims)
+		utils.SetContext(c, "claims", claims)
+		fmt.Printf("[%s] REQUEST AUTHORIZED with User Claims: %+v\n", *reqId, claims)
 		return c.Next()
 	}
 
@@ -41,6 +41,6 @@ func Authorization(c *fiber.Ctx) error {
 		Data:    nil,
 	}
 
-	fmt.Printf("[%s] REQUEST FAILED with RESPONSE:%+v\n", reqId, response)
+	fmt.Printf("[%s] REQUEST FAILED with RESPONSE:%+v\n", *reqId, response)
 	return c.Status(response.Status).JSON(response)
 }
