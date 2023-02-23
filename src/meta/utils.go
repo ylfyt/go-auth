@@ -33,14 +33,22 @@ func (app *App) validateHandler(handler interface{}) error {
 			continue
 		}
 
+		// For Http Request Pointer
+		if ref.In(i).Kind() == reflect.Pointer {
+			if ref.In(i).String() != "*fiber.Ctx" {
+				return errors.New("pointer arg only allowed with type *fiber.ctx, or from dependency services")
+			}
+			continue
+		}
+
 		// For Payload on Request Body
 		if ref.In(i).Kind() == reflect.Struct {
 			numOfStruct++
+			continue
 		}
 
-		// For Http Request Pointer
-		if ref.In(i).Kind() == reflect.Pointer && ref.In(i).String() != "*fiber.Ctx" {
-			return errors.New("pointer arg only allowed with type *fiber.ctx")
+		if ref.In(i).Kind() != reflect.String {
+			return errors.New("arg for request param only allowed with type 'string'")
 		}
 	}
 
