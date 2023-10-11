@@ -6,5 +6,5 @@ import (
 )
 
 func ping() meta.ResponseDto {
-	return utils.GetSuccessResponse("ok")
+	return utils.GetSuccessResponse("pong")
 }

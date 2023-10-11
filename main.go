@@ -6,11 +6,14 @@ import (
 	"go-auth/src/controllers"
 	"go-auth/src/meta"
 	"go-auth/src/middlewares"
+	"strconv"
 
 	_ "github.com/lib/pq"
 )
 
 func main() {
+	config.Print()
+
 	db, err := sql.Open("postgres", config.DB_CONNECTION)
 	if err != nil {
 		panic(err)
@@ -25,5 +28,9 @@ func main() {
 	app.Use("", middlewares.AccessLogger)
 	meta.AddService(app, db)
 
-	app.Run(3000)
+	port, err := strconv.Atoi(config.LISTEN_PORT)
+	if err != nil {
+		port = 3000
+	}
+	app.Run(port)
 }

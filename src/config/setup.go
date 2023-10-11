@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"strconv"
 
@@ -75,4 +76,14 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func Print() {
+	fmt.Println("LISTEN_PORT", LISTEN_PORT)
+	fmt.Println("DB_CONNECTION", DB_CONNECTION)
+	fmt.Println("JWT_ACCESS_TOKEN_EXPIRY_TIME", JWT_ACCESS_TOKEN_EXPIRY_TIME)
+	fmt.Println("JWT_ACCESS_TOKEN_SECRET_KEY", JWT_ACCESS_TOKEN_SECRET_KEY)
+	fmt.Println("JWT_REFRESH_TOKEN_EXPIRY_TIME", JWT_REFRESH_TOKEN_EXPIRY_TIME)
+	fmt.Println("JWT_REFRESH_TOKEN_SECRET_KEY", JWT_REFRESH_TOKEN_SECRET_KEY)
+	fmt.Println()
 }
