@@ -68,11 +68,8 @@ func loadConfig() error {
 }
 
 func init() {
-	err := godotenv.Load()
-	if err != nil {
-		panic(err)
-	}
-	err = loadConfig()
+	godotenv.Load()
+	err := loadConfig()
 	if err != nil {
 		panic(err)
 	}
