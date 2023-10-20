@@ -6,6 +6,7 @@ import (
 	"go-auth/src/middlewares"
 	"strconv"
 
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/ylfyt/go_db/go_db"
 )
 
@@ -23,6 +24,7 @@ func main() {
 
 	app := controllers.New()
 	app.Use(middlewares.AccessLogger)
+	app.Use(cors.New())
 	app.AddService(db)
 
 	port, err := strconv.Atoi(config.LISTEN_PORT)
