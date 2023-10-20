@@ -6,7 +6,6 @@ import (
 	"go-auth/src/middlewares"
 	"strconv"
 
-	_ "github.com/lib/pq"
 	"github.com/ylfyt/go_db/go_db"
 )
 

@@ -15,7 +15,7 @@ func getUsers(db *go_db.DB) meta.ResponseDto {
 	SELECT * FROM users
 	`)
 	if err != nil {
-		return utils.GetErrorResponse(http.StatusInternalServerError, "Something Wrong!")
+		return utils.GetInternalErrorResponse("Something wrong!")
 	}
 
 	return utils.GetSuccessResponse(users)

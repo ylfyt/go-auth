@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"go-auth/src/dtos"
 	"go-auth/src/utils"
-	"net/http"
 
 	"github.com/google/uuid"
 	"github.com/ylfyt/go_db/go_db"
@@ -18,11 +17,11 @@ func register(data dtos.Register, db *go_db.DB) meta.ResponseDto {
 	`, data.Username)
 	if err != nil {
 		fmt.Println("Error", err)
-		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong")
+		return utils.GetInternalErrorResponse("Something wrong!")
 	}
 
 	if count != 0 {
-		return utils.GetErrorResponse(http.StatusBadRequest, "Username already exist")
+		return utils.GetBadRequestResponse("Username already exist")
 	}
 
 	rawSalt := utils.GenerateRawSalt()
@@ -33,7 +32,7 @@ func register(data dtos.Register, db *go_db.DB) meta.ResponseDto {
 	_, err = db.Write(`INSERT INTO users VALUES($1, $2, $3, NOW())`, newId, data.Username, hashedPassword+":"+string(rawSalt))
 	if err != nil {
 		fmt.Println("Error:", err)
-		return utils.GetErrorResponse(http.StatusInternalServerError, "Failed to insert new user")
+		return utils.GetInternalErrorResponse("Failed to insert new user")
 	}
 
 	return utils.GetSuccessResponse(newId)

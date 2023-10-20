@@ -24,7 +24,7 @@ func refreshToken(data dtos.RefreshPayload, db *go_db.DB) meta.ResponseDto {
 		SELECT * FROM jwt_tokens WHERE id = $1
 	`, jid)
 	if err != nil {
-		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong!")
+		return utils.GetInternalErrorResponse("Something wrong!")
 	}
 	if token == nil {
 		return utils.GetErrorResponse(http.StatusBadRequest, "Token is not found")
@@ -35,7 +35,7 @@ func refreshToken(data dtos.RefreshPayload, db *go_db.DB) meta.ResponseDto {
 	SELECT * FROM users WHERE id = $1
 	`, token.UserId)
 	if err != nil {
-		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong!")
+		return utils.GetInternalErrorResponse("Something wrong!")
 	}
 	if user == nil {
 		return utils.GetBadRequestResponse("User is not found")
@@ -43,13 +43,13 @@ func refreshToken(data dtos.RefreshPayload, db *go_db.DB) meta.ResponseDto {
 
 	refresh, access, newJid, err := services.CreateJwtToken(*user)
 	if err != nil {
-		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong!")
+		return utils.GetInternalErrorResponse("Something wrong!")
 	}
 	_, err = db.Write(`
 		INSERT INTO jwt_tokens VALUES($1, $2, NOW())
 	`, newJid, user.Id)
 	if err != nil {
-		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong!")
+		return utils.GetInternalErrorResponse("Something wrong!")
 	}
 
 	_, err = db.Write(`

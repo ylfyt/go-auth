@@ -18,7 +18,7 @@ func logoutAll(data dtos.Register, db *go_db.DB) meta.ResponseDto {
 	SELECT * FROM users WHERE username = $1
 	`, data.Username)
 	if err != nil {
-		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong!")
+		return utils.GetInternalErrorResponse("Something wrong!")
 	}
 
 	if user == nil {
@@ -27,7 +27,7 @@ func logoutAll(data dtos.Register, db *go_db.DB) meta.ResponseDto {
 
 	passwordData := strings.Split(user.Password, ":")
 	if len(passwordData) != 2 {
-		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong!")
+		return utils.GetInternalErrorResponse("Something wrong!")
 	}
 	isValid := utils.VerifyPassword(passwordData[0], data.Password, user.Username, []byte(passwordData[1]))
 	if !isValid {
@@ -38,7 +38,7 @@ func logoutAll(data dtos.Register, db *go_db.DB) meta.ResponseDto {
 		DELETE FROM jwt_tokens WHERE user_id = $1
 	`, user.Id)
 	if err != nil {
-		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong!")
+		return utils.GetInternalErrorResponse("Something wrong!")
 	}
 
 	if deleted == 0 {

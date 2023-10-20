@@ -7,7 +7,6 @@ require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/uuid v1.3.1
 	github.com/joho/godotenv v1.4.0
-	github.com/lib/pq v1.10.9
 	github.com/ylfyt/go_db v0.0.1
 	github.com/ylfyt/meta v0.0.1
 )
@@ -20,6 +19,7 @@ require (
 	github.com/go-playground/validator/v10 v10.15.5 // indirect
 	github.com/klauspost/compress v1.16.7 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
+	github.com/lib/pq v1.10.9 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
