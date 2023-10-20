@@ -1,8 +1,9 @@
 package utils
 
 import (
-	"go-auth/src/meta"
 	"net/http"
+
+	"github.com/ylfyt/meta/meta"
 )
 
 func GetSuccessResponse(data interface{}) meta.ResponseDto {
@@ -15,10 +16,10 @@ func GetSuccessResponse(data interface{}) meta.ResponseDto {
 	}
 }
 
-func GetErrorResponse(statusCode int, message string, errors ...meta.Error) meta.ResponseDto {
+func GetErrorResponse(statusCode int, message string, errors ...meta.FieldError) meta.ResponseDto {
 	err := errors
 	if err == nil {
-		err = []meta.Error{}
+		err = []meta.FieldError{}
 	}
 	return meta.ResponseDto{
 		Status:  statusCode,
@@ -29,14 +30,14 @@ func GetErrorResponse(statusCode int, message string, errors ...meta.Error) meta
 	}
 }
 
-func GetBadRequestResponse(message string, errors ...meta.Error) meta.ResponseDto {
+func GetBadRequestResponse(message string, errors ...meta.FieldError) meta.ResponseDto {
 	return GetErrorResponse(http.StatusBadRequest, message, errors...)
 }
 
-func GetInternalErrorResponse(message string, errors ...meta.Error) meta.ResponseDto {
+func GetInternalErrorResponse(message string, errors ...meta.FieldError) meta.ResponseDto {
 	return GetErrorResponse(http.StatusInternalServerError, message, errors...)
 }
 
-func GetUnauthorizedResponse(message string, errors ...meta.Error) meta.ResponseDto {
+func GetUnauthorizedResponse(message string, errors ...meta.FieldError) meta.ResponseDto {
 	return GetErrorResponse(http.StatusUnauthorized, message, errors...)
 }

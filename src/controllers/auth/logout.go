@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"go-auth/src/db"
 	"go-auth/src/dtos"
-	"go-auth/src/meta"
 	"go-auth/src/services"
 	"go-auth/src/utils"
 	"net/http"
+
+	"github.com/ylfyt/meta/meta"
 )
 
 func logout(data dtos.RefreshPayload, dbCtx *sql.DB) meta.ResponseDto {

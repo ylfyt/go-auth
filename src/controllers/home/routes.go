@@ -1,8 +1,6 @@
 package home
 
-import (
-	"go-auth/src/meta"
-)
+import "github.com/ylfyt/meta/meta"
 
 var Routes = []meta.EndPoint{
 	{

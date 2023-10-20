@@ -1,8 +1,9 @@
 package home
 
 import (
-	"go-auth/src/meta"
 	"go-auth/src/utils"
+
+	"github.com/ylfyt/meta/meta"
 )
 
 func ping() meta.ResponseDto {

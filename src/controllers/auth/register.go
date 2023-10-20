@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"go-auth/src/db"
 	"go-auth/src/dtos"
-	"go-auth/src/meta"
 	"go-auth/src/utils"
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/ylfyt/meta/meta"
 )
 
 func register(data dtos.Register, dbCtx *sql.DB) meta.ResponseDto {

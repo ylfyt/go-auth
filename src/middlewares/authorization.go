@@ -5,12 +5,13 @@ import (
 	"net/http"
 	"strings"
 
-	"go-auth/src/meta"
 	"go-auth/src/models"
 	"go-auth/src/services"
 
-	"github.com/gofiber/fiber/v2"
 	"go-auth/src/utils"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/ylfyt/meta/meta"
 )
 
 func validate(authHeader string) (bool, models.AccessClaims) {
@@ -25,7 +26,10 @@ func validate(authHeader string) (bool, models.AccessClaims) {
 
 func Authorization(c *fiber.Ctx) error {
 	reqId := utils.GetContext[string](c, "reqId")
-	authHeader := c.GetReqHeaders()["Authorization"]
+	authHeader := ""
+	if len(c.GetReqHeaders()["Authorization"]) > 0 {
+		authHeader = c.GetReqHeaders()["Authorization"][0]
+	}
 
 	valid, claims := validate(authHeader)
 	if valid {

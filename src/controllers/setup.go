@@ -1,6 +1,6 @@
 package controllers
 
-import "go-auth/src/meta"
+import "github.com/ylfyt/meta/meta"
 
 func New() *meta.App {
 	app := meta.New(&meta.Config{

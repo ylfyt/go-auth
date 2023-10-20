@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"go-auth/src/db"
 	"go-auth/src/dtos"
-	"go-auth/src/meta"
 	"go-auth/src/models"
 	"go-auth/src/utils"
 	"net/http"
 	"strings"
+
+	"github.com/ylfyt/meta/meta"
 )
 
 func logoutAll(data dtos.Register, dbCtx *sql.DB) meta.ResponseDto {

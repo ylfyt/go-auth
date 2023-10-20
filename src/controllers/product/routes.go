@@ -1,10 +1,9 @@
 package product
 
 import (
-	"go-auth/src/meta"
 	"go-auth/src/middlewares"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/ylfyt/meta/meta"
 )
 
 var Routes = []meta.EndPoint{
@@ -17,7 +16,7 @@ var Routes = []meta.EndPoint{
 		Method:      "POST",
 		Path:        "/product",
 		HandlerFunc: createProduct,
-		Middlewares: []func(c *fiber.Ctx) error{
+		Middlewares: []any{
 			middlewares.Authorization,
 		},
 	},

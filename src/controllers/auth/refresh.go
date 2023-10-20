@@ -5,11 +5,12 @@ import (
 	"go-auth/src/config"
 	"go-auth/src/db"
 	"go-auth/src/dtos"
-	"go-auth/src/meta"
 	"go-auth/src/models"
 	"go-auth/src/services"
 	"go-auth/src/utils"
 	"net/http"
+
+	"github.com/ylfyt/meta/meta"
 )
 
 func refreshToken(data dtos.RefreshPayload, dbCtx *sql.DB) meta.ResponseDto {

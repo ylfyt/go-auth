@@ -1,10 +1,9 @@
 package auth
 
 import (
-	"go-auth/src/meta"
 	"go-auth/src/middlewares"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/ylfyt/meta/meta"
 )
 
 var Routes = []meta.EndPoint{
@@ -37,7 +36,7 @@ var Routes = []meta.EndPoint{
 		Method:      "GET",
 		Path:        "/auth/users",
 		HandlerFunc: getUsers,
-		Middlewares: []func(c *fiber.Ctx) error{
+		Middlewares: []any{
 			middlewares.Authorization,
 		},
 	},
@@ -45,7 +44,7 @@ var Routes = []meta.EndPoint{
 		Method:      "GET",
 		Path:        "/auth/users/:id",
 		HandlerFunc: getUserById,
-		Middlewares: []func(c *fiber.Ctx) error{
+		Middlewares: []any{
 			// middlewares.Authorization,
 		},
 	},

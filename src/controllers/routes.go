@@ -4,7 +4,8 @@ import (
 	"go-auth/src/controllers/auth"
 	"go-auth/src/controllers/home"
 	"go-auth/src/controllers/product"
-	"go-auth/src/meta"
+
+	"github.com/ylfyt/meta/meta"
 )
 
 var appRoutes = [][]meta.EndPoint{

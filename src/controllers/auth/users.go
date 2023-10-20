@@ -3,10 +3,11 @@ package auth
 import (
 	"database/sql"
 	"go-auth/src/db"
-	"go-auth/src/meta"
 	"go-auth/src/models"
 	"go-auth/src/utils"
 	"net/http"
+
+	"github.com/ylfyt/meta/meta"
 )
 
 func getUsers(dbCtx *sql.DB) meta.ResponseDto {

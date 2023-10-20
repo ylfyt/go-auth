@@ -4,10 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 	"go-auth/src/db"
-	"go-auth/src/meta"
 	"go-auth/src/models"
 	"go-auth/src/utils"
 	"net/http"
+
+	"github.com/ylfyt/meta/meta"
 )
 
 func getProduct(dbCtx *sql.DB) meta.ResponseDto {

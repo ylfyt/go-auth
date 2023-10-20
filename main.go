@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"go-auth/src/config"
 	"go-auth/src/controllers"
-	"go-auth/src/meta"
 	"go-auth/src/middlewares"
 	"strconv"
 
@@ -25,8 +24,8 @@ func main() {
 	}
 
 	app := controllers.New()
-	app.Use("", middlewares.AccessLogger)
-	meta.AddService(app, db)
+	app.Use(middlewares.AccessLogger)
+	app.AddService(db)
 
 	port, err := strconv.Atoi(config.LISTEN_PORT)
 	if err != nil {
