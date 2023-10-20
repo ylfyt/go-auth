@@ -1,17 +1,17 @@
 package auth
 
 import (
-	"database/sql"
-	"go-auth/src/db"
 	"go-auth/src/models"
 	"go-auth/src/utils"
 	"net/http"
 
+	"github.com/ylfyt/go_db/go_db"
 	"github.com/ylfyt/meta/meta"
 )
 
-func getUsers(dbCtx *sql.DB) meta.ResponseDto {
-	users, err := db.Get[models.User](dbCtx, `
+func getUsers(db *go_db.DB) meta.ResponseDto {
+	var users []models.User
+	err := db.Get(&users, `
 	SELECT * FROM users
 	`)
 	if err != nil {
@@ -21,8 +21,9 @@ func getUsers(dbCtx *sql.DB) meta.ResponseDto {
 	return utils.GetSuccessResponse(users)
 }
 
-func getUserById(id string, dbCtx *sql.DB) meta.ResponseDto {
-	user, err := db.GetOne[models.User](dbCtx, `
+func getUserById(id string, db *go_db.DB) meta.ResponseDto {
+	var user *models.User
+	err := db.GetFirst(&user, `
 		SELECT * FROM users WHERE id = $1
 	`, id)
 

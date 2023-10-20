@@ -1,20 +1,20 @@
 package auth
 
 import (
-	"database/sql"
 	"fmt"
-	"go-auth/src/db"
 	"go-auth/src/dtos"
 	"go-auth/src/models"
 	"go-auth/src/utils"
 	"net/http"
 	"strings"
 
+	"github.com/ylfyt/go_db/go_db"
 	"github.com/ylfyt/meta/meta"
 )
 
-func logoutAll(data dtos.Register, dbCtx *sql.DB) meta.ResponseDto {
-	user, err := db.GetOne[models.User](dbCtx, `
+func logoutAll(data dtos.Register, db *go_db.DB) meta.ResponseDto {
+	var user *models.User
+	err := db.GetFirst(&user, `
 	SELECT * FROM users WHERE username = $1
 	`, data.Username)
 	if err != nil {
@@ -34,7 +34,7 @@ func logoutAll(data dtos.Register, dbCtx *sql.DB) meta.ResponseDto {
 		return utils.GetErrorResponse(http.StatusBadRequest, "Username or password is wrong")
 	}
 
-	deleted, err := db.Write(dbCtx, `
+	deleted, err := db.Write(`
 		DELETE FROM jwt_tokens WHERE user_id = $1
 	`, user.Id)
 	if err != nil {

@@ -1,9 +1,7 @@
 package auth
 
 import (
-	"database/sql"
 	"go-auth/src/config"
-	"go-auth/src/db"
 	"go-auth/src/dtos"
 	"go-auth/src/models"
 	"go-auth/src/services"
@@ -11,11 +9,13 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/ylfyt/go_db/go_db"
 	"github.com/ylfyt/meta/meta"
 )
 
-func login(data dtos.Register, dbCtx *sql.DB) meta.ResponseDto {
-	user, err := db.GetOne[models.User](dbCtx, `
+func login(data dtos.Register, db *go_db.DB) meta.ResponseDto {
+	var user *models.User
+	err := db.GetFirst(&user, `
 	SELECT * FROM users WHERE username = $1
 	`, data.Username)
 	if err != nil {
@@ -39,10 +39,10 @@ func login(data dtos.Register, dbCtx *sql.DB) meta.ResponseDto {
 	if err != nil {
 		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong!")
 	}
-	inserted, _ := db.Write(dbCtx, `
+	_, err = db.Write(`
 		INSERT INTO jwt_tokens VALUES($1, $2, NOW())
 	`, jid, user.Id)
-	if inserted == 0 {
+	if err != nil {
 		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong!")
 	}
 

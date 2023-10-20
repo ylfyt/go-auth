@@ -1,18 +1,18 @@
 package product
 
 import (
-	"database/sql"
 	"fmt"
-	"go-auth/src/db"
 	"go-auth/src/models"
 	"go-auth/src/utils"
 	"net/http"
 
+	"github.com/ylfyt/go_db/go_db"
 	"github.com/ylfyt/meta/meta"
 )
 
-func getProduct(dbCtx *sql.DB) meta.ResponseDto {
-	products, err := db.Get[models.Product](dbCtx, `SELECT * FROM products`)
+func getProduct(db *go_db.DB) meta.ResponseDto {
+	var products []models.Product
+	err := db.Get(&products, `SELECT * FROM products`)
 	if err != nil {
 		fmt.Println("Err", err)
 		return utils.GetErrorResponse(http.StatusInternalServerError, "Something wrong")

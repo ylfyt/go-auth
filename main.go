@@ -1,24 +1,23 @@
 package main
 
 import (
-	"database/sql"
 	"go-auth/src/config"
 	"go-auth/src/controllers"
 	"go-auth/src/middlewares"
 	"strconv"
 
 	_ "github.com/lib/pq"
+	"github.com/ylfyt/go_db/go_db"
 )
 
 func main() {
 	config.Print()
 
-	db, err := sql.Open("postgres", config.DB_CONNECTION)
-	if err != nil {
-		panic(err)
-	}
-
-	err = db.Ping()
+	db, err := go_db.New(config.DB_CONNECTION, go_db.Option{
+		MaxOpenConn:     50,
+		MaxIdleConn:     10,
+		MaxIdleLifeTime: 300,
+	})
 	if err != nil {
 		panic(err)
 	}
