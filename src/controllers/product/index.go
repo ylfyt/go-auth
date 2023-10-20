@@ -2,6 +2,7 @@ package product
 
 import (
 	"fmt"
+	"go-auth/src/middlewares"
 	"go-auth/src/models"
 	"go-auth/src/utils"
 
@@ -9,9 +10,34 @@ import (
 	"github.com/ylfyt/meta/meta"
 )
 
-func getProduct(db *go_db.DB) meta.ResponseDto {
+type ProductController struct {
+	db *go_db.DB
+}
+
+func (me *ProductController) Setup(db *go_db.DB) []meta.EndPoint {
+	me.db = db
+
+	return []meta.EndPoint{
+		{
+			Method:      "GET",
+			Path:        "/product",
+			HandlerFunc: me.getProduct,
+		},
+		{
+			Method:      "POST",
+			Path:        "/product",
+			HandlerFunc: me.createProduct,
+			Middlewares: []any{
+				middlewares.Authorization,
+			},
+		},
+	}
+
+}
+
+func (me *ProductController) getProduct() meta.ResponseDto {
 	var products []models.Product
-	err := db.Get(&products, `SELECT * FROM products`)
+	err := me.db.Get(&products, `SELECT * FROM products`)
 	if err != nil {
 		fmt.Println("Err", err)
 		return utils.GetInternalErrorResponse("Something wrong")

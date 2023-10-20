@@ -6,6 +6,6 @@ import (
 	"github.com/ylfyt/meta/meta"
 )
 
-func ping() meta.ResponseDto {
+func (me *HomeController) ping() meta.ResponseDto {
 	return utils.GetSuccessResponse("pong")
 }

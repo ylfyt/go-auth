@@ -9,18 +9,17 @@ import (
 	"go-auth/src/utils"
 	"net/http"
 
-	"github.com/ylfyt/go_db/go_db"
 	"github.com/ylfyt/meta/meta"
 )
 
-func refreshToken(data dtos.RefreshPayload, db *go_db.DB) meta.ResponseDto {
+func (me *AuthController) refreshToken(data dtos.RefreshPayload) meta.ResponseDto {
 	valid, jid := services.VerifyRefreshToken(data.RefreshToken)
 	if !valid {
 		return utils.GetErrorResponse(http.StatusBadRequest, "Token is not valid")
 	}
 
 	var token *models.JwtToken
-	err := db.GetFirst(&token, `
+	err := me.db.GetFirst(&token, `
 		SELECT * FROM jwt_tokens WHERE id = $1
 	`, jid)
 	if err != nil {
@@ -32,7 +31,7 @@ func refreshToken(data dtos.RefreshPayload, db *go_db.DB) meta.ResponseDto {
 	}
 
 	var user *models.User
-	err = db.GetFirst(&user, `
+	err = me.db.GetFirst(&user, `
 	SELECT * FROM users WHERE id = $1
 	`, token.UserId)
 	if err != nil {
@@ -46,14 +45,14 @@ func refreshToken(data dtos.RefreshPayload, db *go_db.DB) meta.ResponseDto {
 	if err != nil {
 		return utils.GetInternalErrorResponse("Something wrong!")
 	}
-	_, err = db.Write(`
+	_, err = me.db.Write(`
 		INSERT INTO jwt_tokens VALUES($1, $2, NOW())
 	`, newJid, user.Id)
 	if err != nil {
 		return utils.GetInternalErrorResponse("Something wrong!")
 	}
 
-	_, err = db.Write(`
+	_, err = me.db.Write(`
 	DELETE FROM jwt_tokens WHERE id = $1
 	`, jid)
 	if err != nil {

@@ -1,15 +1,21 @@
 package controllers
 
-import "github.com/ylfyt/meta/meta"
+import (
+	"go-auth/src/controllers/auth"
+	"go-auth/src/controllers/home"
+	"go-auth/src/controllers/product"
+
+	"github.com/ylfyt/meta/meta"
+)
 
 func New() *meta.App {
 	app := meta.New(&meta.Config{
 		BaseUrl: "/api",
 	})
 
-	for _, v := range appRoutes {
-		app.AddEndPoint(v...)
-	}
+	app.AddController(&home.HomeController{})
+	app.AddController(&auth.AuthController{})
+	app.AddController(&product.ProductController{})
 
 	return app
 }

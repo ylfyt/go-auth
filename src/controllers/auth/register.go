@@ -6,13 +6,12 @@ import (
 	"go-auth/src/utils"
 
 	"github.com/google/uuid"
-	"github.com/ylfyt/go_db/go_db"
 	"github.com/ylfyt/meta/meta"
 )
 
-func register(data dtos.Register, db *go_db.DB) meta.ResponseDto {
+func (me *AuthController) register(data dtos.Register) meta.ResponseDto {
 	var count int
-	err := db.ColFirst(&count, `
+	err := me.db.ColFirst(&count, `
 		SELECT count(*) FROM users WHERE username = $1
 	`, data.Username)
 	if err != nil {
@@ -29,7 +28,7 @@ func register(data dtos.Register, db *go_db.DB) meta.ResponseDto {
 	hashedPassword := utils.HashPassword(data.Password, realSalt)
 
 	newId := uuid.New()
-	_, err = db.Write(`INSERT INTO users VALUES($1, $2, $3, NOW())`, newId, data.Username, hashedPassword+":"+string(rawSalt))
+	_, err = me.db.Write(`INSERT INTO users VALUES($1, $2, $3, NOW())`, newId, data.Username, hashedPassword+":"+string(rawSalt))
 	if err != nil {
 		fmt.Println("Error:", err)
 		return utils.GetInternalErrorResponse("Failed to insert new user")

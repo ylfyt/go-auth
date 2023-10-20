@@ -8,13 +8,12 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ylfyt/go_db/go_db"
 	"github.com/ylfyt/meta/meta"
 )
 
-func logoutAll(data dtos.Register, db *go_db.DB) meta.ResponseDto {
+func (me *AuthController) logoutAll(data dtos.Register) meta.ResponseDto {
 	var user *models.User
-	err := db.GetFirst(&user, `
+	err := me.db.GetFirst(&user, `
 	SELECT * FROM users WHERE username = $1
 	`, data.Username)
 	if err != nil {
@@ -34,7 +33,7 @@ func logoutAll(data dtos.Register, db *go_db.DB) meta.ResponseDto {
 		return utils.GetErrorResponse(http.StatusBadRequest, "Username or password is wrong")
 	}
 
-	deleted, err := db.Write(`
+	deleted, err := me.db.Write(`
 		DELETE FROM jwt_tokens WHERE user_id = $1
 	`, user.Id)
 	if err != nil {

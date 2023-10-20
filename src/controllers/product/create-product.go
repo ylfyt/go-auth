@@ -8,14 +8,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/ylfyt/go_db/go_db"
 	"github.com/ylfyt/meta/meta"
 )
 
-func createProduct(data dtos.CreateProduct, db *go_db.DB) meta.ResponseDto {
+func (me *ProductController) createProduct(data dtos.CreateProduct) meta.ResponseDto {
 	newId := uuid.New()
 	now := time.Now()
-	inserted, err := db.Write(`
+	inserted, err := me.db.Write(`
 		INSERT INTO products(id, name, description, price, created_at)
 		VALUES($1, $2, $3, $4, $5)
 	`, newId, data.Name, data.Description, data.Price, now)

@@ -10,7 +10,26 @@ import (
 	"github.com/ylfyt/meta/meta"
 )
 
-func home(c *fiber.Ctx, db *go_db.DB) meta.ResponseDto {
+type HomeController struct {
+}
+
+func (me *HomeController) Setup() []meta.EndPoint {
+	return []meta.EndPoint{
+		{
+			Method:      "GET",
+			Path:        "/",
+			HandlerFunc: me.home,
+		},
+		{
+			Method:      "GET",
+			Path:        "/ping",
+			HandlerFunc: me.ping,
+		},
+	}
+
+}
+
+func (me *HomeController) home(c *fiber.Ctx, db *go_db.DB) meta.ResponseDto {
 	reqId := utils.GetContext[string](c, "reqId")
 	fmt.Println("ReqId:", *reqId)
 	var product *models.Product

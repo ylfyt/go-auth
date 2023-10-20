@@ -9,13 +9,12 @@ import (
 	"go-auth/src/utils"
 	"strings"
 
-	"github.com/ylfyt/go_db/go_db"
 	"github.com/ylfyt/meta/meta"
 )
 
-func login(data dtos.Register, db *go_db.DB) meta.ResponseDto {
+func (me *AuthController) login(data dtos.Register) meta.ResponseDto {
 	var user *models.User
-	err := db.GetFirst(&user, `
+	err := me.db.GetFirst(&user, `
 	SELECT * FROM users WHERE username = $1
 	`, data.Username)
 	if err != nil {
@@ -43,7 +42,7 @@ func login(data dtos.Register, db *go_db.DB) meta.ResponseDto {
 		fmt.Println("Data:", err)
 		return utils.GetInternalErrorResponse("Something wrong!")
 	}
-	_, err = db.Write(`
+	_, err = me.db.Write(`
 		INSERT INTO jwt_tokens VALUES($1, $2, NOW())
 	`, jid, user.Id)
 	if err != nil {
