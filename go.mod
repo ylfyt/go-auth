@@ -8,7 +8,7 @@ require (
 	github.com/google/uuid v1.3.1
 	github.com/joho/godotenv v1.4.0
 	github.com/ylfyt/go_db v0.0.1
-	github.com/ylfyt/meta v0.0.2
+	github.com/ylfyt/meta v0.0.3
 )
 
 require (
