@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"fmt"
 	"go-auth/src/config"
 	"go-auth/src/dtos"
 	"go-auth/src/models"
@@ -18,15 +19,18 @@ func login(data dtos.Register, db *go_db.DB) meta.ResponseDto {
 	SELECT * FROM users WHERE username = $1
 	`, data.Username)
 	if err != nil {
+		fmt.Println("ERR", err)
 		return utils.GetInternalErrorResponse("Something wrong!")
 	}
 
 	if user == nil {
 		return utils.GetBadRequestResponse("Username or password is wrong")
 	}
+	fmt.Printf("Data: %+v\n", user)
 
 	passwordData := strings.Split(user.Password, ":")
 	if len(passwordData) != 2 {
+		fmt.Println("???")
 		return utils.GetInternalErrorResponse("Something wrong!")
 	}
 	isValid := utils.VerifyPassword(passwordData[0], data.Password, user.Username, []byte(passwordData[1]))
@@ -36,12 +40,14 @@ func login(data dtos.Register, db *go_db.DB) meta.ResponseDto {
 
 	refresh, access, jid, err := services.CreateJwtToken(*user)
 	if err != nil {
+		fmt.Println("Data:", err)
 		return utils.GetInternalErrorResponse("Something wrong!")
 	}
 	_, err = db.Write(`
 		INSERT INTO jwt_tokens VALUES($1, $2, NOW())
 	`, jid, user.Id)
 	if err != nil {
+		fmt.Println("Data:", err)
 		return utils.GetInternalErrorResponse("Something wrong!")
 	}
 

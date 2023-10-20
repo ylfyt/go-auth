@@ -24,6 +24,7 @@ func refreshToken(data dtos.RefreshPayload, db *go_db.DB) meta.ResponseDto {
 		SELECT * FROM jwt_tokens WHERE id = $1
 	`, jid)
 	if err != nil {
+		fmt.Println("ERROR", err)
 		return utils.GetInternalErrorResponse("Something wrong!")
 	}
 	if token == nil {

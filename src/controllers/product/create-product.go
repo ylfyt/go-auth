@@ -30,7 +30,7 @@ func createProduct(data dtos.CreateProduct, db *go_db.DB) meta.ResponseDto {
 
 	return utils.GetSuccessResponse(models.Product{
 		Id:          newId,
-		CreatedAt:   now.Format(time.RFC3339Nano),
+		CreatedAt:   now,
 		Name:        data.Name,
 		Description: data.Description,
 		Price:       data.Price,

@@ -53,6 +53,8 @@ github.com/valyala/tcplisten v1.0.0 h1:rBHj/Xf+E1tRGZyWIWwJDiRY0zc1Js+CV5DqwacVS
 github.com/valyala/tcplisten v1.0.0/go.mod h1:T0xQ8SeCZGxckz9qRXTfG43PvQ/mcWh7FwZEA7Ioqkc=
 github.com/ylfyt/go_db v0.0.1 h1:6WkzXb0J7TH3k1eNmBaViptEnbG+1yhIWHPjZfIWDj0=
 github.com/ylfyt/go_db v0.0.1/go.mod h1:8qlUi0F86ZNYFF/S9zpUWUUniYOBROz6wAIjiTf5G04=
+github.com/ylfyt/go_db v0.0.2 h1:ehWS2CWBXJuXxSy7B0NI7kV5JGVmijDXESNnw6BkHAA=
+github.com/ylfyt/go_db v0.0.2/go.mod h1:WLdgr8yayJ3mVbZ8iM0E5EuydTEKOdKKanpmMZPWiFg=
 github.com/ylfyt/meta v0.0.3 h1:fbZ3RsTlIKmijpmbFJySMocLwovTYoGs/YJLeCQCv/U=
 github.com/ylfyt/meta v0.0.3/go.mod h1:P6loNecQ6Bey5NflbuggI+wP6n9SYkk+QZTUYWJWwXc=
 golang.org/x/crypto v0.14.0 h1:wBqGXzWJW6m1XrIKlAH0Hs1JJ7+9KBwnIO8v66Q9cHc=
