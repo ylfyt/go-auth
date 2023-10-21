@@ -7,6 +7,7 @@ import (
 
 	"go-auth/src/models"
 	"go-auth/src/services"
+	"go-auth/src/structs"
 
 	"go-auth/src/utils"
 
@@ -14,24 +15,24 @@ import (
 	"github.com/ylfyt/meta/meta"
 )
 
-func validate(authHeader string) (bool, models.AccessClaims) {
+func validate(authHeader string, config *structs.EnvConf) (bool, models.AccessClaims) {
 	if authHeader == "" {
 		return false, models.AccessClaims{}
 	}
 	token := strings.TrimPrefix(authHeader, "Bearer ")
-	valid, claims := services.VerifyAccessToken(token)
+	valid, claims := services.VerifyAccessToken(config, token)
 
 	return valid, claims
 }
 
-func Authorization(c *fiber.Ctx) error {
+func Authorization(c *fiber.Ctx, config *structs.EnvConf) error {
 	reqId := utils.GetContext[string](c, "reqId")
 	authHeader := ""
 	if len(c.GetReqHeaders()["Authorization"]) > 0 {
 		authHeader = c.GetReqHeaders()["Authorization"][0]
 	}
 
-	valid, claims := validate(authHeader)
+	valid, claims := validate(authHeader, config)
 	if valid {
 		utils.SetContext(c, "claims", claims)
 		fmt.Printf("[%s] REQUEST AUTHORIZED with User Claims: %+v\n", *reqId, claims)

@@ -1,19 +1,30 @@
 package main
 
 import (
-	"go-auth/src/config"
+	"fmt"
 	"go-auth/src/controllers"
 	"go-auth/src/middlewares"
-	"strconv"
+	"go-auth/src/structs"
+	"go-auth/src/utils"
 
+	"github.com/caarlos0/env/v9"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/ylfyt/go_db/go_db"
 )
 
 func main() {
-	config.Print()
+	utils.LoadEnv()
 
-	db, err := go_db.New(config.DB_CONNECTION, go_db.Option{
+	var config structs.EnvConf
+	if err := env.ParseWithOptions(&config, env.Options{
+		RequiredIfNoDef:       true,
+		UseFieldNameByDefault: true,
+	}); err != nil {
+		panic(err)
+	}
+	fmt.Printf("Data: %+v\n", config)
+
+	db, err := go_db.New(config.DbConnection, go_db.Option{
 		MaxOpenConn:     50,
 		MaxIdleConn:     10,
 		MaxIdleLifeTime: 300,
@@ -26,10 +37,7 @@ func main() {
 	app.Use(middlewares.AccessLogger)
 	app.Use(cors.New())
 	app.AddService(db)
+	app.AddService(&config)
 
-	port, err := strconv.Atoi(config.LISTEN_PORT)
-	if err != nil {
-		port = 3000
-	}
-	app.Run(port)
+	app.Run(config.ListenPort)
 }

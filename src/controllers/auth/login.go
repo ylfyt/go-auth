@@ -2,7 +2,6 @@ package auth
 
 import (
 	"fmt"
-	"go-auth/src/config"
 	"go-auth/src/dtos"
 	"go-auth/src/models"
 	"go-auth/src/services"
@@ -25,7 +24,6 @@ func (me *AuthController) login(data dtos.Register) meta.ResponseDto {
 	if user == nil {
 		return utils.GetBadRequestResponse("Username or password is wrong")
 	}
-	fmt.Printf("Data: %+v\n", user)
 
 	passwordData := strings.Split(user.Password, ":")
 	if len(passwordData) != 2 {
@@ -37,7 +35,7 @@ func (me *AuthController) login(data dtos.Register) meta.ResponseDto {
 		return utils.GetBadRequestResponse("Username or password is wrong")
 	}
 
-	refresh, access, jid, err := services.CreateJwtToken(*user)
+	refresh, access, jid, err := services.CreateJwtToken(me.config, *user)
 	if err != nil {
 		fmt.Println("Data:", err)
 		return utils.GetInternalErrorResponse("Something wrong!")
@@ -55,7 +53,7 @@ func (me *AuthController) login(data dtos.Register) meta.ResponseDto {
 		Token: dtos.TokenPayload{
 			RefreshToken: refresh,
 			AccessToken:  access,
-			ExpiredIn:    int64(config.JWT_ACCESS_TOKEN_EXPIRY_TIME),
+			ExpiredIn:    int64(me.config.JwtAccessTokenExpiryTime),
 		},
 	})
 }

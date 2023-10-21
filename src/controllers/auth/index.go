@@ -2,17 +2,20 @@ package auth
 
 import (
 	"go-auth/src/middlewares"
+	"go-auth/src/structs"
 
 	"github.com/ylfyt/go_db/go_db"
 	"github.com/ylfyt/meta/meta"
 )
 
 type AuthController struct {
-	db *go_db.DB
+	db     *go_db.DB
+	config *structs.EnvConf
 }
 
-func (me *AuthController) Setup(db *go_db.DB) []meta.EndPoint {
+func (me *AuthController) Setup(db *go_db.DB, config *structs.EnvConf) []meta.EndPoint {
 	me.db = db
+	me.config = config
 
 	return []meta.EndPoint{
 		{

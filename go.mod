@@ -3,10 +3,10 @@ module go-auth
 go 1.19
 
 require (
+	github.com/caarlos0/env/v9 v9.0.0
 	github.com/gofiber/fiber/v2 v2.50.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/uuid v1.3.1
-	github.com/joho/godotenv v1.4.0
 	github.com/ylfyt/go_db v0.0.2
 	github.com/ylfyt/meta v0.0.4
 )

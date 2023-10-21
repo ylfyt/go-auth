@@ -10,7 +10,7 @@ import (
 )
 
 func (me *AuthController) logout(data dtos.RefreshPayload) meta.ResponseDto {
-	valid, jid := services.VerifyRefreshToken(data.RefreshToken)
+	valid, jid := services.VerifyRefreshToken(me.config, data.RefreshToken)
 	if !valid {
 		return utils.GetBadRequestResponse("Token is not valid")
 	}
