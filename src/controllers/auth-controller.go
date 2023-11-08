@@ -12,7 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (me *ChiController) login(w http.ResponseWriter, r *http.Request) {
+func (me *Controller) login(w http.ResponseWriter, r *http.Request) {
 	data, err := utils.ParseBody[dtos.Register](r)
 	if err != nil {
 		fmt.Println("ERR", err)
@@ -72,7 +72,7 @@ func (me *ChiController) login(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (me *ChiController) logoutAll(w http.ResponseWriter, r *http.Request) {
+func (me *Controller) logoutAll(w http.ResponseWriter, r *http.Request) {
 	data, err := utils.ParseBody[dtos.Register](r)
 	if err != nil {
 		fmt.Println("ERR", err)
@@ -120,7 +120,7 @@ func (me *ChiController) logoutAll(w http.ResponseWriter, r *http.Request) {
 	sendSuccessResponse(w)
 }
 
-func (me *ChiController) logout(w http.ResponseWriter, r *http.Request) {
+func (me *Controller) logout(w http.ResponseWriter, r *http.Request) {
 	data, err := utils.ParseBody[dtos.RefreshPayload](r)
 	if err != nil {
 		fmt.Println("ERR", err)
@@ -152,7 +152,7 @@ func (me *ChiController) logout(w http.ResponseWriter, r *http.Request) {
 	sendSuccessResponse(w, true)
 }
 
-func (me *ChiController) refreshToken(w http.ResponseWriter, r *http.Request) {
+func (me *Controller) refreshToken(w http.ResponseWriter, r *http.Request) {
 	data, err := utils.ParseBody[dtos.RefreshPayload](r)
 	if err != nil {
 		fmt.Println("ERR", err)
@@ -222,7 +222,7 @@ func (me *ChiController) refreshToken(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (me *ChiController) register(w http.ResponseWriter, r *http.Request) {
+func (me *Controller) register(w http.ResponseWriter, r *http.Request) {
 	data, err := utils.ParseBody[dtos.Register](r)
 	if err != nil {
 		fmt.Println("ERR", err)

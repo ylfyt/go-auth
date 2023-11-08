@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (me *ChiController) getUsers(w http.ResponseWriter, _ *http.Request) {
+func (me *Controller) getUsers(w http.ResponseWriter, _ *http.Request) {
 	var users []models.User
 	err := me.db.Get(&users, `
 	SELECT * FROM users
@@ -22,7 +22,7 @@ func (me *ChiController) getUsers(w http.ResponseWriter, _ *http.Request) {
 	sendSuccessResponse(w, users)
 }
 
-func (me *ChiController) getUserById(w http.ResponseWriter, r *http.Request) {
+func (me *Controller) getUserById(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
 		fmt.Println("ERR", err)
