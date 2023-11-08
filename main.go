@@ -3,12 +3,11 @@ package main
 import (
 	"fmt"
 	"go-auth/src/controllers"
-	"go-auth/src/middlewares"
 	"go-auth/src/structs"
 	"go-auth/src/utils"
+	"net/http"
 
 	"github.com/caarlos0/env/v9"
-	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/ylfyt/go_db/go_db"
 )
 
@@ -33,11 +32,8 @@ func main() {
 		panic(err)
 	}
 
-	app := controllers.New()
-	app.Use(middlewares.AccessLogger)
-	app.Use(cors.New())
-	app.AddService(db)
-	app.AddService(&config)
+	app := controllers.New(db, &config)
 
-	app.Run(config.ListenPort)
+	fmt.Println("Listening on port", config.ListenPort)
+	http.ListenAndServe(fmt.Sprintf(":%d", config.ListenPort), app)
 }
