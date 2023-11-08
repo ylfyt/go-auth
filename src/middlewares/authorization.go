@@ -9,6 +9,7 @@ import (
 	"go-auth/src/models"
 	"go-auth/src/services"
 	"go-auth/src/structs"
+	"go-auth/src/utils"
 
 	jsoniter "github.com/json-iterator/go"
 )
@@ -26,13 +27,15 @@ func validate(authHeader string, config *structs.EnvConf) (bool, models.AccessCl
 func Authorization(config *structs.EnvConf) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			valid, claims := validate(r.Header.Get("Authorization"), config)
+			reqId := utils.GetContext[int64](r, utils.CTX_REQ_ID_KEY)
+
+			valid, claim := validate(r.Header.Get("Authorization"), config)
 			if valid {
-				fmt.Println("OK", claims)
-				next.ServeHTTP(w, r)
+				fmt.Printf("[%d] AUTHORIZED: %+v\n", *reqId, claim)
+				next.ServeHTTP(w, utils.SetContext(r, utils.CTX_CLAIM_KEY, claim))
 				return
 			}
-			fmt.Println("UNAUTHORIZED")
+			fmt.Printf("[%d] UNAUTHORIZED\n", reqId)
 
 			w.Header().Add("content-type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)

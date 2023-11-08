@@ -1,14 +1,14 @@
 package dtos
 
 type RefreshPayload struct {
-	RefreshToken string `json:"refreshToken"`
+	RefreshToken string
 }
 type AccessPayload struct {
-	RefreshToken string `json:"refreshToken"`
+	RefreshToken string
 }
 
 type TokenPayload struct {
-	RefreshToken string `json:"refreshToken"`
-	AccessToken  string `json:"accessToken"`
-	ExpiredIn    int64  `json:"expiredIn"`
+	RefreshToken string
+	AccessToken  string
+	ExpiredIn    int64
 }

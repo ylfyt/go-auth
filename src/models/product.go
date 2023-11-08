@@ -7,10 +7,10 @@ import (
 )
 
 type Product struct {
-	Id          uuid.UUID `json:"id"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	Name        string    `json:"name"`
-	Description string    `json:"description" col:"desc"`
-	Price       int64     `json:"price"`
+	Id          uuid.UUID
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	Name        string
+	Description string
+	Price       int64
 }

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"go-auth/src/dtos"
 	"net/http"
+
+	jsoniter "github.com/json-iterator/go"
 )
 
 func GetErrorResponse(statusCode int, message string, errors ...dtos.FieldError) dtos.Response {
@@ -19,7 +21,7 @@ func GetErrorResponse(statusCode int, message string, errors ...dtos.FieldError)
 func sendResponse(w http.ResponseWriter, response dtos.Response) {
 	w.Header().Add("content-type", "application/json")
 	w.WriteHeader(response.Status)
-	err := json.NewEncoder(w).Encode(response)
+	err := jsoniter.ConfigCompatibleWithStandardLibrary.NewEncoder(w).Encode(response)
 	if err != nil {
 		fmt.Println("ERR", err)
 	}

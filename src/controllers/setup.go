@@ -7,11 +7,8 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/ylfyt/go_db/go_db"
 )
-
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 type EndPoint struct {
 	Method      string

@@ -8,8 +8,24 @@ import (
 	"net/http"
 
 	"github.com/caarlos0/env/v9"
+	"github.com/json-iterator/go/extra"
 	"github.com/ylfyt/go_db/go_db"
 )
+
+func init() {
+	extra.SetNamingStrategy(func(s string) string {
+		if len(s) < 1 {
+			return s
+		}
+		first := s[0]
+		if 'A' <= first && first <= 'Z' {
+			first += 'a' - 'A'
+		}
+		strBytes := []byte(s)
+		strBytes[0] = first
+		return string(strBytes)
+	})
+}
 
 func main() {
 	utils.LoadEnv()

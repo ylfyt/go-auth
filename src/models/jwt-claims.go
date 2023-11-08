@@ -7,7 +7,7 @@ import (
 
 type AccessClaims struct {
 	jwt.StandardClaims
-	Username string    `json:"username"`
+	Username string    `json:"un"`
 	Jid      uuid.UUID `json:"jid"`
 }
 

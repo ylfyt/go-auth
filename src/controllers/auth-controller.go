@@ -6,7 +6,6 @@ import (
 	"go-auth/src/models"
 	"go-auth/src/services"
 	"go-auth/src/utils"
-	"io"
 	"net/http"
 	"strings"
 
@@ -14,15 +13,7 @@ import (
 )
 
 func (me *ChiController) login(w http.ResponseWriter, r *http.Request) {
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		fmt.Println("ERR", err)
-		sendDefaultInternalErrorResponse(w)
-		return
-	}
-
-	var data dtos.Register
-	err = json.Unmarshal(body, &data)
+	data, err := utils.ParseBody[dtos.Register](r)
 	if err != nil {
 		fmt.Println("ERR", err)
 		sendBadRequestResponse(w, "Payload is not valid")
@@ -82,15 +73,7 @@ func (me *ChiController) login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (me *ChiController) logoutAll(w http.ResponseWriter, r *http.Request) {
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		fmt.Println("ERR", err)
-		sendDefaultInternalErrorResponse(w)
-		return
-	}
-
-	var data dtos.Register
-	err = json.Unmarshal(body, &data)
+	data, err := utils.ParseBody[dtos.Register](r)
 	if err != nil {
 		fmt.Println("ERR", err)
 		sendBadRequestResponse(w, "Payload is not valid")

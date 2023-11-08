@@ -3,19 +3,19 @@ package dtos
 import "go-auth/src/models"
 
 type LoginResponse struct {
-	User  models.User  `json:"user"`
-	Token TokenPayload `json:"token"`
+	User  models.User
+	Token TokenPayload
 }
 type FieldError struct {
-	Field string `json:"field"`
-	Tag   string `json:"tag"`
-	Param string `json:"param"`
+	Field string
+	Tag   string
+	Param string
 }
 
 type Response struct {
-	Status  int          `json:"status"`
-	Message string       `json:"message"`
-	Success bool         `json:"success"`
-	Errors  []FieldError `json:"errors"`
-	Data    any          `json:"data"`
+	Status  int
+	Message string
+	Success bool
+	Errors  []FieldError
+	Data    any
 }
