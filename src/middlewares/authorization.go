@@ -5,14 +5,12 @@ import (
 	"net/http"
 	"strings"
 
+	"go-auth/src/dtos"
 	"go-auth/src/models"
 	"go-auth/src/services"
 	"go-auth/src/structs"
 
-	"go-auth/src/utils"
-
-	"github.com/gofiber/fiber/v2"
-	"github.com/ylfyt/meta/meta"
+	jsoniter "github.com/json-iterator/go"
 )
 
 func validate(authHeader string, config *structs.EnvConf) (bool, models.AccessClaims) {
@@ -25,27 +23,28 @@ func validate(authHeader string, config *structs.EnvConf) (bool, models.AccessCl
 	return valid, claims
 }
 
-func Authorization(c *fiber.Ctx, config *structs.EnvConf) error {
-	reqId := utils.GetContext[string](c, "reqId")
-	authHeader := ""
-	if len(c.GetReqHeaders()["Authorization"]) > 0 {
-		authHeader = c.GetReqHeaders()["Authorization"][0]
-	}
+func Authorization(config *structs.EnvConf) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			valid, claims := validate(r.Header.Get("Authorization"), config)
+			if valid {
+				fmt.Println("OK", claims)
+				next.ServeHTTP(w, r)
+				return
+			}
+			fmt.Println("UNAUTHORIZED")
 
-	valid, claims := validate(authHeader, config)
-	if valid {
-		utils.SetContext(c, "claims", claims)
-		fmt.Printf("[%s] REQUEST AUTHORIZED with User Claims: %+v\n", *reqId, claims)
-		return c.Next()
+			w.Header().Add("content-type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			response := dtos.Response{
+				Status:  http.StatusUnauthorized,
+				Message: "UNAUTHORIZED",
+				Success: false,
+			}
+			err := jsoniter.ConfigCompatibleWithStandardLibrary.NewEncoder(w).Encode(response)
+			if err != nil {
+				fmt.Println("ERR", err)
+			}
+		})
 	}
-
-	response := meta.ResponseDto{
-		Status:  http.StatusUnauthorized,
-		Message: "Unauthorized",
-		Success: false,
-		Data:    nil,
-	}
-
-	fmt.Printf("[%s] REQUEST FAILED with RESPONSE:%+v\n", *reqId, response)
-	return c.Status(response.Status).JSON(response)
 }

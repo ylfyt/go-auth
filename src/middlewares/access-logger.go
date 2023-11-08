@@ -1,15 +1,16 @@
 package middlewares
 
 import (
-	"go-auth/src/utils"
+	"fmt"
+	"net/http"
 	"time"
-
-	"github.com/gofiber/fiber/v2"
 )
 
-func AccessLogger(c *fiber.Ctx) error {
-	reqId := time.Now().Format("REQ_2006-01-02_15:04:05.000")
-	utils.SetContext(c, "reqId", reqId)
+func AccessLogger(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		reqId := time.Now().Unix()
+		fmt.Println("Req", reqId)
 
-	return c.Next()
+		next.ServeHTTP(w, r)
+	})
 }

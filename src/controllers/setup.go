@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"fmt"
+	"go-auth/src/middlewares"
 	"go-auth/src/structs"
 	"net/http"
 
@@ -12,9 +14,10 @@ import (
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 type EndPoint struct {
-	Method  string
-	Path    string
-	Handler func(http.ResponseWriter, *http.Request)
+	Method      string
+	Path        string
+	Handler     func(http.ResponseWriter, *http.Request)
+	Middlewares []func(next http.Handler) http.Handler
 }
 
 type Route struct {
@@ -84,11 +87,22 @@ func New(_db *go_db.DB, _config *structs.EnvConf) *chi.Mux {
 				Method:  "GET",
 				Path:    "/",
 				Handler: controller.home,
+				Middlewares: []func(next http.Handler) http.Handler{
+					middlewares.Authorization(_config),
+				},
 			},
 			{
 				Method:  "GET",
 				Path:    "/ping",
 				Handler: controller.ping,
+				Middlewares: []func(next http.Handler) http.Handler{
+					func(next http.Handler) http.Handler {
+						return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+							fmt.Println("PING")
+							next.ServeHTTP(w, r)
+						})
+					},
+				},
 			},
 		},
 	}
@@ -97,13 +111,17 @@ func New(_db *go_db.DB, _config *structs.EnvConf) *chi.Mux {
 		userRoute,
 		homeRoute,
 	}
-
 	r := chi.NewRouter()
+	r.Use(middlewares.AccessLogger)
 	r.Route("/api", func(r chi.Router) {
 		for _, route := range routes {
 			r.Route(route.Base, func(r chi.Router) {
 				for _, endpoint := range route.EndPoints {
-					r.MethodFunc(endpoint.Method, endpoint.Path, endpoint.Handler)
+					sub := r.Group(nil)
+					for _, mid := range endpoint.Middlewares {
+						sub.Use(mid)
+					}
+					sub.MethodFunc(endpoint.Method, endpoint.Path, endpoint.Handler)
 				}
 			})
 		}
