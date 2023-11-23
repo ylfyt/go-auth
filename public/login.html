@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Document</title>
+	</head>
+	<body>
+		<h1>Login</h1>
+		<form id="myForm">
+			<input id="username" required type="text" placeholder="Username or Email" />
+			<input id="password" required type="password" placeholder="Password" />
+			<button type="submit">Login</button>
+		</form>
+		<script>
+			const client = new URLSearchParams(window.location.search).get('client');
+
+			console.log(client);
+
+			const API_BASE_URL = 'http://localhost:5000/api';
+
+			document.querySelector('#myForm').addEventListener('submit', async (e) => {
+				e.preventDefault();
+
+				const username = document.getElementById('username').value;
+				const password = document.getElementById('password').value;
+
+				const res = await fetch(`${API_BASE_URL}/sso/login`, {
+					method: 'POST',
+					body: JSON.stringify({
+						client,
+						username,
+						password,
+					}),
+				})
+					.then((res) => res.json())
+					.then((response) => {
+						console.log('RES', response);
+						if (!response.success) {
+							console.log('FAILED');
+							return;
+						}
+            return
+						// window.location.href = `${response.data.callback}?exchange=${response.data.exchange}`;
+					})
+					.catch((err) => {
+						console.log('ERROR', err);
+					});
+			});
+		</script>
+	</body>
+</html>

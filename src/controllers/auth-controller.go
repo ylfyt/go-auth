@@ -54,7 +54,7 @@ func (me *Controller) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_, err = me.db.Write(`
-		INSERT INTO jwt_tokens VALUES($1, $2, NOW())
+		INSERT INTO jwt_tokens(id, user_id, created_at) VALUES($1, $2, NOW())
 	`, jid, user.Id)
 	if err != nil {
 		fmt.Println("Data:", err)
@@ -249,7 +249,7 @@ func (me *Controller) register(w http.ResponseWriter, r *http.Request) {
 	hashedPassword := utils.HashPassword(data.Password, realSalt)
 
 	newId := uuid.New()
-	_, err = me.db.Write(`INSERT INTO users VALUES($1, $2, $3, NOW())`, newId, data.Username, hashedPassword+":"+string(rawSalt))
+	_, err = me.db.Write(`INSERT INTO users(id, username, password, created_at) VALUES($1, $2, $3, NOW())`, newId, data.Username, hashedPassword+":"+string(rawSalt))
 	if err != nil {
 		fmt.Println("Error:", err)
 		sendDefaultInternalErrorResponse(w)

@@ -3,10 +3,12 @@ package controllers
 import (
 	"fmt"
 	"go-auth/src/middlewares"
+	"go-auth/src/services"
 	"go-auth/src/structs"
 	"net/http"
 
 	"github.com/go-chi/chi"
+	"github.com/go-chi/cors"
 	"github.com/ylfyt/go_db/go_db"
 )
 
@@ -23,14 +25,16 @@ type Route struct {
 }
 
 type Controller struct {
-	db     *go_db.DB
-	config *structs.EnvConf
+	db              *go_db.DB
+	config          *structs.EnvConf
+	ssoTokenService *services.SsoTokenService
 }
 
-func New(_db *go_db.DB, _config *structs.EnvConf) *chi.Mux {
+func New(_db *go_db.DB, _config *structs.EnvConf, _ssoService *services.SsoTokenService) *chi.Mux {
 	controller := Controller{
-		db:     _db,
-		config: _config,
+		db:              _db,
+		config:          _config,
+		ssoTokenService: _ssoService,
 	}
 	authRoute := Route{
 		Base: "/auth",
@@ -109,14 +113,33 @@ func New(_db *go_db.DB, _config *structs.EnvConf) *chi.Mux {
 			},
 		},
 	}
+	ssoRoute := Route{
+		Base: "/sso",
+		EndPoints: []EndPoint{
+			{
+				Method:  "POST",
+				Path:    "/login",
+				Handler: controller.ssoLogin,
+			},
+		},
+	}
+
 	routes := []Route{
 		authRoute,
 		userRoute,
 		homeRoute,
+		ssoRoute,
 	}
-	
+
 	r := chi.NewRouter()
 	r.Use(middlewares.AccessLogger)
+	r.Use(cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+	}).Handler)
+
+	r.Get("/login", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "public/login.html")
+	})
 
 	r.Route("/api", func(r chi.Router) {
 		for _, route := range routes {
