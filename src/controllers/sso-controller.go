@@ -25,11 +25,7 @@ func (me *Controller) ssoLogin(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	data, err := utils.ParseBody[dtos.SsoLoginPayload](r)
-	if err != nil {
-		sendBadRequestResponse(w, "Payload is not valid")
-		return
-	}
+	data := utils.GetBodyContext[dtos.SsoLoginPayload](r)
 
 	client := ssoClients[data.Client]
 	if client == nil {
@@ -38,7 +34,7 @@ func (me *Controller) ssoLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user models.User
-	err = me.db.Get(&user, `
+	err := me.db.Get(&user, `
 	SELECT * FROM users WHERE username = ?
 	`, data.Username)
 	if err != nil {

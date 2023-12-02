@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"fmt"
+	"go-auth/src/dtos"
 	"go-auth/src/middlewares"
 	"go-auth/src/services"
 	"go-auth/src/shared"
@@ -43,26 +43,41 @@ func New(_db *sqlx.DB, _config *shared.EnvConf, _ssoService *services.SsoTokenSe
 				Method:  "POST",
 				Path:    "/login",
 				Handler: controller.login,
+				Middlewares: []func(next http.Handler) http.Handler{
+					middlewares.BodyParser[dtos.Register](),
+				},
 			},
 			{
 				Method:  "POST",
 				Path:    "/register",
 				Handler: controller.register,
+				Middlewares: []func(next http.Handler) http.Handler{
+					middlewares.BodyParser[dtos.Register](),
+				},
 			},
 			{
 				Method:  "POST",
 				Path:    "/refresh",
 				Handler: controller.refreshToken,
+				Middlewares: []func(next http.Handler) http.Handler{
+					middlewares.BodyParser[dtos.RefreshPayload](),
+				},
 			},
 			{
 				Method:  "POST",
 				Path:    "/logout",
 				Handler: controller.logout,
+				Middlewares: []func(next http.Handler) http.Handler{
+					middlewares.BodyParser[dtos.RefreshPayload](),
+				},
 			},
 			{
 				Method:  "POST",
 				Path:    "/logout-all",
 				Handler: controller.logoutAll,
+				Middlewares: []func(next http.Handler) http.Handler{
+					middlewares.BodyParser[dtos.Register](),
+				},
 			},
 		},
 	}
@@ -94,22 +109,11 @@ func New(_db *sqlx.DB, _config *shared.EnvConf, _ssoService *services.SsoTokenSe
 				Method:  "GET",
 				Path:    "/",
 				Handler: controller.home,
-				Middlewares: []func(next http.Handler) http.Handler{
-					middlewares.Authorization(_config),
-				},
 			},
 			{
 				Method:  "GET",
 				Path:    "/ping",
 				Handler: controller.ping,
-				Middlewares: []func(next http.Handler) http.Handler{
-					func(next http.Handler) http.Handler {
-						return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-							fmt.Println("PING")
-							next.ServeHTTP(w, r)
-						})
-					},
-				},
 			},
 		},
 	}
@@ -120,6 +124,9 @@ func New(_db *sqlx.DB, _config *shared.EnvConf, _ssoService *services.SsoTokenSe
 				Method:  "POST",
 				Path:    "/login",
 				Handler: controller.ssoLogin,
+				Middlewares: []func(next http.Handler) http.Handler{
+					middlewares.BodyParser[dtos.SsoLoginPayload](),
+				},
 			},
 		},
 	}

@@ -1,4 +1,4 @@
-package models
+package dtos
 
 import (
 	"github.com/golang-jwt/jwt"

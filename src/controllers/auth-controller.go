@@ -12,15 +12,10 @@ import (
 )
 
 func (me *Controller) login(w http.ResponseWriter, r *http.Request) {
-	data, err := utils.ParseBody[dtos.Register](r)
-	if err != nil {
-		fmt.Println("ERR", err)
-		sendBadRequestResponse(w, "Payload is not valid")
-		return
-	}
+	data := utils.GetBodyContext[dtos.Register](r)
 
 	var user models.User
-	err = me.db.Get(&user, `SELECT * FROM users WHERE username = ?`, data.Username)
+	err := me.db.Get(&user, `SELECT * FROM users WHERE username = ?`, data.Username)
 	if err != nil {
 		fmt.Println("ERR", err)
 		if err == sql.ErrNoRows {
@@ -69,14 +64,10 @@ func (me *Controller) login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (me *Controller) logoutAll(w http.ResponseWriter, r *http.Request) {
-	data, err := utils.ParseBody[dtos.Register](r)
-	if err != nil {
-		fmt.Println("ERR", err)
-		sendBadRequestResponse(w, "Payload is not valid")
-	}
+	data := utils.GetBodyContext[dtos.Register](r)
 
 	var user models.User
-	err = me.db.Get(&user, `
+	err := me.db.Get(&user, `
 		SELECT * FROM users WHERE username = ?
 	`, data.Username)
 	if err != nil {
@@ -116,12 +107,8 @@ func (me *Controller) logoutAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (me *Controller) logout(w http.ResponseWriter, r *http.Request) {
-	data, err := utils.ParseBody[dtos.RefreshPayload](r)
-	if err != nil {
-		fmt.Println("ERR", err)
-		sendBadRequestResponse(w, "Payload is not valid")
-		return
-	}
+	data := utils.GetBodyContext[dtos.RefreshPayload](r)
+
 	valid, jid := services.VerifyRefreshToken(me.config, data.RefreshToken)
 	if !valid {
 		sendBadRequestResponse(w, "Token is not valid")
@@ -148,12 +135,8 @@ func (me *Controller) logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (me *Controller) refreshToken(w http.ResponseWriter, r *http.Request) {
-	data, err := utils.ParseBody[dtos.RefreshPayload](r)
-	if err != nil {
-		fmt.Println("ERR", err)
-		sendBadRequestResponse(w, "Payload is not valid")
-		return
-	}
+	data := utils.GetBodyContext[dtos.RefreshPayload](r)
+
 	valid, jid := services.VerifyRefreshToken(me.config, data.RefreshToken)
 	if !valid {
 		sendBadRequestResponse(w, "Token is not valid")
@@ -161,7 +144,7 @@ func (me *Controller) refreshToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var token models.JwtToken
-	err = me.db.Get(&token, `
+	err := me.db.Get(&token, `
 		SELECT * FROM jwt_tokens WHERE id = ?
 	`, jid)
 	if err != nil {
@@ -220,14 +203,10 @@ func (me *Controller) refreshToken(w http.ResponseWriter, r *http.Request) {
 }
 
 func (me *Controller) register(w http.ResponseWriter, r *http.Request) {
-	data, err := utils.ParseBody[dtos.Register](r)
-	if err != nil {
-		fmt.Println("ERR", err)
-		sendBadRequestResponse(w, "Payload is not valid")
-		return
-	}
+	data := utils.GetBodyContext[dtos.Register](r)
+
 	var count int
-	err = me.db.Get(&count, `
+	err := me.db.Get(&count, `
 		SELECT count(*) FROM users WHERE username = ?
 	`, data.Username)
 	if err != nil {

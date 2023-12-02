@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"go-auth/src/dtos"
-	"go-auth/src/models"
 	"go-auth/src/services"
 	"go-auth/src/shared"
 	"go-auth/src/utils"
@@ -14,9 +13,9 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
-func validate(authHeader string, config *shared.EnvConf) (bool, models.AccessClaims) {
+func validate(authHeader string, config *shared.EnvConf) (bool, dtos.AccessClaims) {
 	if authHeader == "" {
-		return false, models.AccessClaims{}
+		return false, dtos.AccessClaims{}
 	}
 	token := strings.TrimPrefix(authHeader, "Bearer ")
 	valid, claims := services.VerifyAccessToken(config, token)
@@ -32,7 +31,7 @@ func Authorization(config *shared.EnvConf) func(next http.Handler) http.Handler 
 			valid, claim := validate(r.Header.Get("Authorization"), config)
 			if valid {
 				fmt.Printf("[%d] AUTHORIZED: %+v\n", *reqId, claim)
-				next.ServeHTTP(w, utils.SetContext(r, utils.CTX_CLAIM_KEY, claim))
+				next.ServeHTTP(w, utils.SetContext(r, utils.CTX_AUTH_CLAIM_KEY, claim))
 				return
 			}
 			fmt.Printf("[%d] UNAUTHORIZED\n", reqId)

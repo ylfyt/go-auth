@@ -1,6 +1,7 @@
 package services
 
 import (
+	"go-auth/src/dtos"
 	"go-auth/src/models"
 	"go-auth/src/shared"
 	"time"
@@ -9,7 +10,7 @@ import (
 )
 
 func createAccessToken(config *shared.EnvConf, user models.User, refreshTokenId int64) (string, error) {
-	claims := models.AccessClaims{
+	claims := dtos.AccessClaims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Duration(config.JwtAccessTokenExpiryTime) * time.Second).Unix(),
 		},
@@ -26,7 +27,7 @@ func createAccessToken(config *shared.EnvConf, user models.User, refreshTokenId 
 
 func createRefreshToken(config *shared.EnvConf) (string, int64, error) {
 	jid := time.Now().Unix()
-	claims := models.RefreshClaims{
+	claims := dtos.RefreshClaims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Duration(config.JwtRefreshTokenExpiryTime) * time.Minute).Unix(),
 		},
@@ -54,25 +55,25 @@ func CreateJwtToken(config *shared.EnvConf, user models.User) (string, string, i
 	return refreshToken, accessToken, jid, nil
 }
 
-func VerifyAccessToken(config *shared.EnvConf, token string) (bool, models.AccessClaims) {
-	claims := models.AccessClaims{}
+func VerifyAccessToken(config *shared.EnvConf, token string) (bool, dtos.AccessClaims) {
+	claims := dtos.AccessClaims{}
 	tkn, err := jwt.ParseWithClaims(token, &claims, func(t *jwt.Token) (interface{}, error) {
 		return []byte(config.JwtAccessTokenSecretKey), nil
 	})
 
 	if err != nil {
-		return false, models.AccessClaims{}
+		return false, dtos.AccessClaims{}
 	}
 
 	if !tkn.Valid {
-		return false, models.AccessClaims{}
+		return false, dtos.AccessClaims{}
 	}
 
 	return true, claims
 }
 
 func VerifyRefreshToken(config *shared.EnvConf, token string) (bool, int64) {
-	claims := models.RefreshClaims{}
+	claims := dtos.RefreshClaims{}
 	tkn, err := jwt.ParseWithClaims(token, &claims, func(t *jwt.Token) (interface{}, error) {
 		return []byte(config.JwtRefreshTokenSecretKey), nil
 	})

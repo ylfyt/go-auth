@@ -1,7 +1,7 @@
 package dtos
 
 type RefreshPayload struct {
-	RefreshToken string
+	RefreshToken string `validate:"required"`
 }
 type AccessPayload struct {
 	RefreshToken string

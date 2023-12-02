@@ -1,9 +1,9 @@
 package dtos
 
 type SsoLoginPayload struct {
-	Client   string
-	Username string
-	Password string
+	Client   string `validate:"required"`
+	Username string `validate:"required,min=4,max=8"`
+	Password string `validate:"required,min=4,max=8"`
 }
 
 type SsoLoginResponse struct {
