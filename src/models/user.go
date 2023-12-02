@@ -9,5 +9,5 @@ type User struct {
 	CreatedAt time.Time  `db:"created_at"`
 	UpdatedAt *time.Time `db:"updated_at"`
 	Username  string     `db:"username"`
-	Password  string     `db:"password"`
+	Password  string     `db:"password" json:"-"`
 }

@@ -41,14 +41,13 @@ func main() {
 	}
 	fmt.Printf("Data: %+v\n", config)
 
-	db, err := sqlx.Open("sqlite3", "my.db")
+	db, err := sqlx.Open("sqlite3", config.DbConnection)
 	if err != nil {
 		panic(err)
 	}
 	defer db.Close()
 
-	ssoTokenService := services.NewSsoTokenService(db)
-
+	ssoTokenService := services.NewSsoTokenService()
 	app := controllers.New(db, &config, ssoTokenService)
 
 	fmt.Println("Listening on port", config.ListenPort)
