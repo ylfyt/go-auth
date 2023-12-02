@@ -8,13 +8,13 @@ import (
 	"go-auth/src/dtos"
 	"go-auth/src/models"
 	"go-auth/src/services"
-	"go-auth/src/structs"
+	"go-auth/src/shared"
 	"go-auth/src/utils"
 
 	jsoniter "github.com/json-iterator/go"
 )
 
-func validate(authHeader string, config *structs.EnvConf) (bool, models.AccessClaims) {
+func validate(authHeader string, config *shared.EnvConf) (bool, models.AccessClaims) {
 	if authHeader == "" {
 		return false, models.AccessClaims{}
 	}
@@ -24,7 +24,7 @@ func validate(authHeader string, config *structs.EnvConf) (bool, models.AccessCl
 	return valid, claims
 }
 
-func Authorization(config *structs.EnvConf) func(next http.Handler) http.Handler {
+func Authorization(config *shared.EnvConf) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			reqId := utils.GetContext[int64](r, utils.CTX_REQ_ID_KEY)

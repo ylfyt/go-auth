@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"go-auth/src/controllers"
 	"go-auth/src/services"
-	"go-auth/src/structs"
+	"go-auth/src/shared"
 	"go-auth/src/utils"
 	"net/http"
 
@@ -12,7 +12,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/json-iterator/go/extra"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/ylfyt/go_db/go_db"
 )
 
 func init() {
@@ -28,12 +27,12 @@ func init() {
 		strBytes[0] = first
 		return string(strBytes)
 	})
-	
+
 	utils.LoadEnv()
 }
 
 func main() {
-	var config structs.EnvConf
+	var config shared.EnvConf
 	if err := env.ParseWithOptions(&config, env.Options{
 		RequiredIfNoDef:       true,
 		UseFieldNameByDefault: true,
@@ -42,21 +41,13 @@ func main() {
 	}
 	fmt.Printf("Data: %+v\n", config)
 
-	db2, err := sqlx.Open("sqlite3", "example.db")
+	db, err := sqlx.Open("sqlite3", "my.db")
 	if err != nil {
 		panic(err)
 	}
-	defer db2.Close()
-	ssoTokenService := services.NewSsoTokenService(db2)
+	defer db.Close()
 
-	db, err := go_db.New(config.DbConnection, go_db.Option{
-		MaxOpenConn:     50,
-		MaxIdleConn:     10,
-		MaxIdleLifeTime: 300,
-	})
-	if err != nil {
-		panic(err)
-	}
+	ssoTokenService := services.NewSsoTokenService(db)
 
 	app := controllers.New(db, &config, ssoTokenService)
 

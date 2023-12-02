@@ -2,13 +2,11 @@ package models
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type JwtToken struct {
-	Id        uuid.UUID
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	UserId    uuid.UUID
+	Id        int64      `db:"id"`
+	CreatedAt time.Time  `db:"created_at"`
+	UpdatedAt *time.Time `db:"updated_at"`
+	UserId    int        `db:"user_id"`
 }

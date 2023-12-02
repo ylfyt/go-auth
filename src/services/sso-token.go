@@ -25,7 +25,7 @@ func (me *SsoTokenService) Exchange(exchangeToken string) (*dtos.TokenPayload, e
 	return token, err
 }
 
-func (me *SsoTokenService) Store(exchangeToken string, token dtos.TokenPayload) error {
+func (me *SsoTokenService) Store(exchangeToken int64, token dtos.TokenPayload) error {
 	_, err := me.db.Exec(`
 		INSERT INTO tokens (exchange, access, refresh, expired)
 		VALUES (?, ?, ?, ?)

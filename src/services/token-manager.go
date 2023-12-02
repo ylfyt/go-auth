@@ -2,14 +2,13 @@ package services
 
 import (
 	"go-auth/src/models"
-	"go-auth/src/structs"
+	"go-auth/src/shared"
 	"time"
 
 	"github.com/golang-jwt/jwt"
-	"github.com/google/uuid"
 )
 
-func createAccessToken(config *structs.EnvConf, user models.User, refreshTokenId uuid.UUID) (string, error) {
+func createAccessToken(config *shared.EnvConf, user models.User, refreshTokenId int64) (string, error) {
 	claims := models.AccessClaims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Duration(config.JwtAccessTokenExpiryTime) * time.Second).Unix(),
@@ -25,8 +24,8 @@ func createAccessToken(config *structs.EnvConf, user models.User, refreshTokenId
 	return signed, err
 }
 
-func createRefreshToken(config *structs.EnvConf) (string, *uuid.UUID, error) {
-	jid := uuid.New()
+func createRefreshToken(config *shared.EnvConf) (string, int64, error) {
+	jid := time.Now().Unix()
 	claims := models.RefreshClaims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Duration(config.JwtRefreshTokenExpiryTime) * time.Minute).Unix(),
@@ -36,26 +35,26 @@ func createRefreshToken(config *structs.EnvConf) (string, *uuid.UUID, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signed, err := token.SignedString([]byte(config.JwtRefreshTokenSecretKey))
 	if err != nil {
-		return "", nil, err
+		return "", 0, err
 	}
 
-	return signed, &jid, nil
+	return signed, jid, nil
 }
 
-func CreateJwtToken(config *structs.EnvConf, user models.User) (string, string, *uuid.UUID, error) {
+func CreateJwtToken(config *shared.EnvConf, user models.User) (string, string, int64, error) {
 	refreshToken, jid, err := createRefreshToken(config)
 	if err != nil {
-		return "", "", nil, err
+		return "", "", 0, err
 	}
-	accessToken, err := createAccessToken(config, user, *jid)
+	accessToken, err := createAccessToken(config, user, jid)
 	if err != nil {
-		return "", "", nil, err
+		return "", "", 0, err
 	}
 
 	return refreshToken, accessToken, jid, nil
 }
 
-func VerifyAccessToken(config *structs.EnvConf, token string) (bool, models.AccessClaims) {
+func VerifyAccessToken(config *shared.EnvConf, token string) (bool, models.AccessClaims) {
 	claims := models.AccessClaims{}
 	tkn, err := jwt.ParseWithClaims(token, &claims, func(t *jwt.Token) (interface{}, error) {
 		return []byte(config.JwtAccessTokenSecretKey), nil
@@ -72,19 +71,19 @@ func VerifyAccessToken(config *structs.EnvConf, token string) (bool, models.Acce
 	return true, claims
 }
 
-func VerifyRefreshToken(config *structs.EnvConf, token string) (bool, *uuid.UUID) {
+func VerifyRefreshToken(config *shared.EnvConf, token string) (bool, int64) {
 	claims := models.RefreshClaims{}
 	tkn, err := jwt.ParseWithClaims(token, &claims, func(t *jwt.Token) (interface{}, error) {
 		return []byte(config.JwtRefreshTokenSecretKey), nil
 	})
 
 	if err != nil {
-		return false, nil
+		return false, 0
 	}
 
 	if !tkn.Valid {
-		return false, nil
+		return false, 0
 	}
 
-	return true, &claims.Jid
+	return true, claims.Jid
 }

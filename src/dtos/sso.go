@@ -8,5 +8,5 @@ type SsoLoginPayload struct {
 
 type SsoLoginResponse struct {
 	Callback string
-	Exchange string
+	Exchange int64
 }

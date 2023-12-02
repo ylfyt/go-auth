@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"database/sql"
 	"fmt"
 	"go-auth/src/dtos"
 	"go-auth/src/models"
@@ -8,8 +9,6 @@ import (
 	"go-auth/src/utils"
 	"net/http"
 	"strings"
-
-	"github.com/google/uuid"
 )
 
 func (me *Controller) login(w http.ResponseWriter, r *http.Request) {
@@ -20,18 +19,15 @@ func (me *Controller) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var user *models.User
-	err = me.db.GetFirst(&user, `
-	SELECT * FROM users WHERE username = $1
-	`, data.Username)
+	var user models.User
+	err = me.db.Get(&user, `SELECT * FROM users WHERE username = ?`, data.Username)
 	if err != nil {
 		fmt.Println("ERR", err)
+		if err == sql.ErrNoRows {
+			sendBadRequestResponse(w, "Username or password is wrong")
+			return
+		}
 		sendDefaultInternalErrorResponse(w)
-		return
-	}
-
-	if user == nil {
-		sendBadRequestResponse(w, "Username or password is wrong")
 		return
 	}
 
@@ -47,14 +43,14 @@ func (me *Controller) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	refresh, access, jid, err := services.CreateJwtToken(me.config, *user)
+	refresh, access, jid, err := services.CreateJwtToken(me.config, user)
 	if err != nil {
 		fmt.Println("Data:", err)
 		sendDefaultInternalErrorResponse(w)
 		return
 	}
-	_, err = me.db.Write(`
-		INSERT INTO jwt_tokens(id, user_id, created_at) VALUES($1, $2, NOW())
+	_, err = me.db.Exec(`
+		INSERT INTO jwt_tokens(id, user_id, created_at) VALUES(?, ?, CURRENT_TIMESTAMP)
 	`, jid, user.Id)
 	if err != nil {
 		fmt.Println("Data:", err)
@@ -63,7 +59,7 @@ func (me *Controller) login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sendSuccessResponse(w, dtos.LoginResponse{
-		User: *user,
+		User: user,
 		Token: dtos.TokenPayload{
 			RefreshToken: refresh,
 			AccessToken:  access,
@@ -79,17 +75,16 @@ func (me *Controller) logoutAll(w http.ResponseWriter, r *http.Request) {
 		sendBadRequestResponse(w, "Payload is not valid")
 	}
 
-	var user *models.User
-	err = me.db.GetFirst(&user, `
-	SELECT * FROM users WHERE username = $1
+	var user models.User
+	err = me.db.Get(&user, `
+		SELECT * FROM users WHERE username = ?
 	`, data.Username)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			sendBadRequestResponse(w, "Username or password is wrong")
+			return
+		}
 		sendDefaultInternalErrorResponse(w)
-		return
-	}
-
-	if user == nil {
-		sendBadRequestResponse(w, "Username or password is wrong")
 		return
 	}
 
@@ -104,15 +99,15 @@ func (me *Controller) logoutAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	deleted, err := me.db.Write(`
-		DELETE FROM jwt_tokens WHERE user_id = $1
+	result, err := me.db.Exec(`
+		DELETE FROM jwt_tokens WHERE user_id = ?
 	`, user.Id)
 	if err != nil {
 		sendDefaultInternalErrorResponse(w)
 		return
 	}
 
-	if deleted == 0 {
+	if affected, _ := result.RowsAffected(); affected == 0 {
 		sendBadRequestResponse(w, "There is no logged in")
 		return
 	}
@@ -133,8 +128,8 @@ func (me *Controller) logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	deleted, err := me.db.Write(`
-		DELETE FROM jwt_tokens WHERE id = $1
+	result, err := me.db.Exec(`
+		DELETE FROM jwt_tokens WHERE id = ?
 	`, jid)
 	if err != nil {
 		fmt.Println("Err", err)
@@ -142,7 +137,7 @@ func (me *Controller) logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if deleted == 0 {
+	if affected, _ := result.RowsAffected(); affected == 0 {
 		sendBadRequestResponse(w, "Token is not found")
 		return
 	}
@@ -165,55 +160,57 @@ func (me *Controller) refreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var token *models.JwtToken
-	err = me.db.GetFirst(&token, `
-		SELECT * FROM jwt_tokens WHERE id = $1
+	var token models.JwtToken
+	err = me.db.Get(&token, `
+		SELECT * FROM jwt_tokens WHERE id = ?
 	`, jid)
 	if err != nil {
 		fmt.Println("ERROR", err)
+		if err == sql.ErrNoRows {
+			sendBadRequestResponse(w, "Token is not found")
+			return
+		}
 		sendDefaultInternalErrorResponse(w)
 		return
 	}
-	if token == nil {
-		sendBadRequestResponse(w, "Token is not found")
-		return
-	}
 
-	var user *models.User
-	err = me.db.GetFirst(&user, `
-	SELECT * FROM users WHERE id = $1
+	var user models.User
+	err = me.db.Get(&user, `
+	SELECT * FROM users WHERE id = ?
 	`, token.UserId)
 	if err != nil {
+		if err != sql.ErrNoRows {
+			sendBadRequestResponse(w, "User is not found")
+			return
+		}
+		fmt.Println("ERR", err)
 		sendDefaultInternalErrorResponse(w)
 		return
 	}
-	if user == nil {
-		sendBadRequestResponse(w, "User is not found")
-		return
-	}
 
-	refresh, access, newJid, err := services.CreateJwtToken(me.config, *user)
+	refresh, access, newJid, err := services.CreateJwtToken(me.config, user)
 	if err != nil {
 		sendDefaultInternalErrorResponse(w)
 		return
 	}
-	_, err = me.db.Write(`
-		INSERT INTO jwt_tokens VALUES($1, $2, NOW())
+	_, err = me.db.Exec(`
+		INSERT INTO jwt_tokens (id, created_at, user_id) VALUES(?, CURRENT_TIMESTAMP, ?)
 	`, newJid, user.Id)
 	if err != nil {
+		fmt.Println("ERR", err)
 		sendDefaultInternalErrorResponse(w)
 		return
 	}
 
-	_, err = me.db.Write(`
-	DELETE FROM jwt_tokens WHERE id = $1
+	_, err = me.db.Exec(`
+		DELETE FROM jwt_tokens WHERE id = ?
 	`, jid)
 	if err != nil {
 		fmt.Println("ERROR", err)
 	}
 
 	sendSuccessResponse(w, dtos.LoginResponse{
-		User: *user,
+		User: user,
 		Token: dtos.TokenPayload{
 			RefreshToken: refresh,
 			AccessToken:  access,
@@ -230,8 +227,8 @@ func (me *Controller) register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var count int
-	err = me.db.ColFirst(&count, `
-		SELECT count(*) FROM users WHERE username = $1
+	err = me.db.Get(&count, `
+		SELECT count(*) FROM users WHERE username = ?
 	`, data.Username)
 	if err != nil {
 		fmt.Println("Error", err)
@@ -248,13 +245,12 @@ func (me *Controller) register(w http.ResponseWriter, r *http.Request) {
 	realSalt := utils.GetRealSalt(rawSalt, data.Username)
 	hashedPassword := utils.HashPassword(data.Password, realSalt)
 
-	newId := uuid.New()
-	_, err = me.db.Write(`INSERT INTO users(id, username, password, created_at) VALUES($1, $2, $3, NOW())`, newId, data.Username, hashedPassword+":"+string(rawSalt))
+	res, err := me.db.Exec(`INSERT INTO users(username, password, created_at) VALUES(?, ?, CURRENT_TIMESTAMP)`, data.Username, hashedPassword+":"+string(rawSalt))
 	if err != nil {
 		fmt.Println("Error:", err)
 		sendDefaultInternalErrorResponse(w)
 		return
 	}
-
+	newId, _ := res.LastInsertId()
 	sendSuccessResponse(w, newId)
 }

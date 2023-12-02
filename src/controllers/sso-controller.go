@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"database/sql"
 	"fmt"
 	"go-auth/src/dtos"
 	"go-auth/src/models"
@@ -8,8 +9,7 @@ import (
 	"go-auth/src/utils"
 	"net/http"
 	"strings"
-
-	"github.com/google/uuid"
+	"time"
 )
 
 type SsoClient struct {
@@ -37,18 +37,17 @@ func (me *Controller) ssoLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var user *models.User
-	err = me.db.GetFirst(&user, `
-	SELECT * FROM users WHERE username = $1
+	var user models.User
+	err = me.db.Get(&user, `
+	SELECT * FROM users WHERE username = ?
 	`, data.Username)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			sendBadRequestResponse(w, "User is not found")
+			return
+		}
 		fmt.Println("ERR", err)
 		sendDefaultInternalErrorResponse(w)
-		return
-	}
-
-	if user == nil {
-		sendBadRequestResponse(w, "Username or password is wrong")
 		return
 	}
 
@@ -64,7 +63,7 @@ func (me *Controller) ssoLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	refresh, access, _, err := services.CreateJwtToken(me.config, *user)
+	refresh, access, _, err := services.CreateJwtToken(me.config, user)
 	if err != nil {
 		fmt.Println("Data:", err)
 		sendDefaultInternalErrorResponse(w)
@@ -76,7 +75,7 @@ func (me *Controller) ssoLogin(w http.ResponseWriter, r *http.Request) {
 		AccessToken:  access,
 		ExpiredIn:    int64(me.config.JwtAccessTokenExpiryTime),
 	}
-	exchangeToken := uuid.New().String()
+	exchangeToken := time.Now().Unix()
 	err = me.ssoTokenService.Store(exchangeToken, token)
 	if err != nil {
 		fmt.Println("ERR", err)

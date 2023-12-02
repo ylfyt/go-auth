@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"go-auth/src/middlewares"
 	"go-auth/src/services"
-	"go-auth/src/structs"
+	"go-auth/src/shared"
 	"net/http"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
-	"github.com/ylfyt/go_db/go_db"
+	"github.com/jmoiron/sqlx"
 )
 
 type EndPoint struct {
@@ -25,12 +25,12 @@ type Route struct {
 }
 
 type Controller struct {
-	db              *go_db.DB
-	config          *structs.EnvConf
+	db              *sqlx.DB
+	config          *shared.EnvConf
 	ssoTokenService *services.SsoTokenService
 }
 
-func New(_db *go_db.DB, _config *structs.EnvConf, _ssoService *services.SsoTokenService) *chi.Mux {
+func New(_db *sqlx.DB, _config *shared.EnvConf, _ssoService *services.SsoTokenService) *chi.Mux {
 	controller := Controller{
 		db:              _db,
 		config:          _config,

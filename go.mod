@@ -7,11 +7,9 @@ require (
 	github.com/go-chi/chi v1.5.5
 	github.com/go-chi/cors v1.2.1
 	github.com/golang-jwt/jwt v3.2.2+incompatible
-	github.com/google/uuid v1.3.1
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/json-iterator/go v1.1.12
 	github.com/mattn/go-sqlite3 v1.14.6
-	github.com/ylfyt/go_db v0.0.2
 )
 
 require (

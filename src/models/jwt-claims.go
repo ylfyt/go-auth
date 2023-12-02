@@ -2,16 +2,15 @@ package models
 
 import (
 	"github.com/golang-jwt/jwt"
-	"github.com/google/uuid"
 )
 
 type AccessClaims struct {
 	jwt.StandardClaims
-	Username string    `json:"un"`
-	Jid      uuid.UUID `json:"jid"`
+	Username string `json:"un"`
+	Jid      int64  `json:"jid"`
 }
 
 type RefreshClaims struct {
 	jwt.StandardClaims
-	Jid uuid.UUID `json:"jid"`
+	Jid int64 `json:"jid"`
 }
