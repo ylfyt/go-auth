@@ -29,7 +29,7 @@ func (me *Controller) ssoLogin(w http.ResponseWriter, r *http.Request) {
 
 	client := ssoClients[data.Client]
 	if client == nil {
-		sendBadRequestResponse(w, "Client is no valid")
+		sendBadRequestResponse(w, "INVALID_CLIENT")
 		return
 	}
 

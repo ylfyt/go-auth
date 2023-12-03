@@ -1,53 +1,226 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Document</title>
-	</head>
-	<body>
-		<h1>Login</h1>
-		<form id="myForm">
-			<input id="username" required type="text" placeholder="Username or Email" />
-			<input id="password" required type="password" placeholder="Password" />
-			<button type="submit">Login</button>
-		</form>
-		<script>
-			const client = new URLSearchParams(window.location.search).get('client');
 
-			console.log(client);
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Document</title>
+  <style>
+    * {
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+      font-family: "Inter UI", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    }
 
-			const API_BASE_URL = 'http://localhost:5000/api';
 
-			document.querySelector('#myForm').addEventListener('submit', async (e) => {
-				e.preventDefault();
+    .inp {
+      position: relative;
+      margin: auto;
+      width: 100%;
+      max-width: 280px;
+      border-radius: 3px;
+      overflow: hidden;
+    }
 
-				const username = document.getElementById('username').value;
-				const password = document.getElementById('password').value;
+    .inp .label {
+      position: absolute;
+      top: 20px;
+      left: 12px;
+      font-size: 16px;
+      color: rgba(0, 0, 0, 0.5);
+      font-weight: 500;
+      transform-origin: 0 0;
+      transform: translate3d(0, 0, 0);
+      transition: all .2s ease;
+      pointer-events: none;
+    }
 
-				const res = await fetch(`${API_BASE_URL}/sso/login`, {
-					method: 'POST',
-					body: JSON.stringify({
-						client,
-						username,
-						password,
-					}),
-				})
-					.then((res) => res.json())
-					.then((response) => {
-						console.log('RES', response);
-						if (!response.success) {
-							console.log('FAILED');
-							return;
-						}
-            return
-						// window.location.href = `${response.data.callback}?exchange=${response.data.exchange}`;
-					})
-					.catch((err) => {
-						console.log('ERROR', err);
-					});
-			});
-		</script>
-	</body>
+    .inp .focus-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.05);
+      z-index: -1;
+      transform: scaleX(0);
+      transform-origin: left;
+    }
+
+    .inp input {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      border: 0;
+      font-family: inherit;
+      padding: 16px 12px 0 12px;
+      height: 56px;
+      font-size: 16px;
+      font-weight: 400;
+      background: rgba(0, 0, 0, 0.02);
+      box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+      color: #000;
+      transition: all .15s ease;
+    }
+
+    .inp input:hover {
+      background: rgba(0, 0, 0, 0.04);
+      box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+    }
+
+    .inp input:not(:placeholder-shown)+.label {
+      color: rgba(0, 0, 0, 0.5);
+      transform: translate3d(0, -12px, 0) scale(0.75);
+    }
+
+    .inp input:focus {
+      background: rgba(0, 0, 0, 0.05);
+      outline: none;
+      box-shadow: inset 0 -2px 0 #0077FF;
+    }
+
+    .inp input:focus+.label {
+      color: #0077FF;
+      transform: translate3d(0, -12px, 0) scale(0.75);
+    }
+
+    .inp input:focus+.label+.focus-bg {
+      transform: scaleX(1);
+      transition: all .1s ease;
+    }
+
+    .button {
+      background-image: linear-gradient(92.88deg, #455EB5 9.16%, #5643CC 43.89%, #673FD7 64.72%);
+      border-radius: 8px;
+      border-style: none;
+      color: #FFFFFF;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      height: 2.5rem;
+      padding: 0 1.5rem;
+      text-align: center;
+      text-shadow: rgba(0, 0, 0, 0.25) 0 3px 8px;
+      transition: all .5s;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+      margin-top: 1rem;
+    }
+
+    .button:hover {
+      box-shadow: rgba(80, 63, 205, 0.5) 0 1px 30px;
+      transition-duration: .1s;
+    }
+
+    .form-container {
+      box-shadow: 2px 2px 5px 1px rgba(0, 0, 0, 0.5);
+      background-color: white;
+      display: flex;
+      border-radius: 0.5rem;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-width: 20rem;
+      padding: 1rem 0;
+    }
+
+
+    .cover-img {
+      position: absolute;
+      z-index: -10;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      object-fit: cover;
+      width: 100%;
+    }
+
+    main {
+      display: flex;
+      height: 100vh;
+      justify-content: center;
+      align-items: center;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      justify-content: center;
+      padding: 1rem;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .form-title {
+      color: rgb(83, 83, 83);
+    }
+  </style>
+
+</head>
+
+<body>
+  <img class="cover-img" src="https://picsum.photos/640/360" alt="background">
+  <main>
+    <div class="form-container">
+      <h2 class="form-title">Login</h2>
+      <form id="myForm">
+        <label for="inp" class="inp">
+          <input required type="text" id="inp" placeholder="&nbsp;">
+          <span class="label">Username</span>
+          <span class="focus-bg"></span>
+        </label>
+        <label for="inp" class="inp">
+          <input required type="password" type="text" id="inp" placeholder="&nbsp;">
+          <span class="label">Password</span>
+          <span class="focus-bg"></span>
+        </label>
+        <!-- HTML !-->
+        <button class="button" role="button" type="submit">Submit</button>
+      </form>
+    </div>
+  </main>
+  <script>
+    // const client = new URLSearchParams(window.location.search).get('client');
+    // if (!client) {
+    //   window.location.href = "/"
+    // }
+
+    // const API_BASE_URL = 'http://localhost:5000/api';
+
+    // document.querySelector('#myForm').addEventListener('submit', async (e) => {
+    //   e.preventDefault();
+
+    //   const username = document.getElementById('username').value;
+    //   const password = document.getElementById('password').value;
+
+    //   const res = await fetch(`${API_BASE_URL}/sso/login`, {
+    //     method: 'POST',
+    //     body: JSON.stringify({
+    //       client,
+    //       username,
+    //       password,
+    //     }),
+    //   })
+    //     .then((res) => res.json())
+    //     .then((response) => {
+    //       console.log('RES', response);
+    //       if (!response.success) {
+    //         if (response.message === "INVALID_CLIENT") {
+    //           window.location.href = "/"
+    //         }
+    //         return;
+    //       }
+    //       window.location.href = `${response.data.callback}?exchange=${response.data.exchange}`;
+    //     })
+    //     .catch((err) => {
+    //       console.log('ERROR', err);
+    //     });
+    // });
+  </script>
+</body>
+
 </html>
