@@ -1,7 +1,6 @@
 package services
 
 import (
-	"fmt"
 	"go-auth/src/dtos"
 )
 
@@ -21,8 +20,9 @@ func NewSsoTokenService() *SsoTokenService {
 func (me *SsoTokenService) Exchange(exchangeToken int64) (*dtos.TokenPayload, error) {
 	token, exist := me.storage[exchangeToken]
 	if !exist {
-		return nil, fmt.Errorf("exchange %d not found", exchangeToken)
+		return nil, nil
 	}
+	delete(me.storage, exchangeToken)
 	return &token, nil
 }
 

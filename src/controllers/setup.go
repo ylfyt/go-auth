@@ -133,6 +133,15 @@ func New(_db *sqlx.DB, _config *shared.EnvConf, _ssoService *services.SsoTokenSe
 				Path:    "/client/{id}",
 				Handler: controller.getSsoClient,
 			},
+			{
+				Method:  "POST",
+				Path:    "/exchange",
+				Handler: controller.exchangeToken,
+				Middlewares: []func(next http.Handler) http.Handler{
+					middlewares.Authorization(_config),
+					middlewares.BodyParser[dtos.SsoExchangePayload](),
+				},
+			},
 		},
 	}
 

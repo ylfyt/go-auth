@@ -15,17 +15,17 @@ import (
 )
 
 type SsoClient struct {
-	Id           string
-	CallbackUrl  string
-	Title        string
+	Id            string
+	CallbackUrl   string
+	Title         string
 	BackgroundUrl string
 }
 
 var ssoClients = map[string]*SsoClient{
 	"123": {
-		Id:           "123",
-		CallbackUrl:  "https://www.google.com/hehe",
-		Title:        "PT Jaya Makmur",
+		Id:            "123",
+		CallbackUrl:   "https://www.google.com/hehe",
+		Title:         "PT Jaya Makmur",
 		BackgroundUrl: "https://picsum.photos/640/360",
 	},
 }
@@ -100,4 +100,20 @@ func (me *Controller) ssoLogin(w http.ResponseWriter, r *http.Request) {
 		Callback: client.CallbackUrl,
 		Exchange: exchangeToken,
 	})
+}
+
+func (me *Controller) exchangeToken(w http.ResponseWriter, r *http.Request) {
+	data := utils.GetBodyContext[dtos.SsoExchangePayload](r)
+	token, err := me.ssoTokenService.Exchange(data.Token)
+	if err != nil {
+		fmt.Println("ERR", err)
+		sendDefaultInternalErrorResponse(w)
+		return
+	}
+	if token == nil {
+		sendBadRequestResponse(w, "INVALID_EXCHANGE_TOKEN")
+		return
+	}
+
+	sendSuccessResponse(w, token)
 }

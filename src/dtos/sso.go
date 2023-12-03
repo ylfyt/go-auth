@@ -10,3 +10,7 @@ type SsoLoginResponse struct {
 	Callback string
 	Exchange int64
 }
+
+type SsoExchangePayload struct {
+	Token int64 `validate:"required"`
+}
