@@ -110,7 +110,12 @@
       margin-top: 1rem;
     }
 
-    .button:hover {
+    .button:disabled {
+      opacity: 80%;
+      cursor: default;
+    }
+
+    .button:hover:enabled {
       box-shadow: rgba(80, 63, 205, 0.5) 0 1px 30px;
       transition-duration: .1s;
     }
@@ -163,63 +168,98 @@
 </head>
 
 <body>
-  <img class="cover-img" src="https://picsum.photos/640/360" alt="background">
+  <img class="cover-img" src="" alt="background">
   <main>
     <div class="form-container">
       <h2 class="form-title">Login</h2>
       <form id="myForm">
         <label for="inp" class="inp">
-          <input required type="text" id="inp" placeholder="&nbsp;">
+          <input required type="text" id="username" placeholder="&nbsp;">
           <span class="label">Username</span>
           <span class="focus-bg"></span>
         </label>
         <label for="inp" class="inp">
-          <input required type="password" type="text" id="inp" placeholder="&nbsp;">
+          <input required type="password" type="text" id="password" placeholder="&nbsp;">
           <span class="label">Password</span>
           <span class="focus-bg"></span>
         </label>
-        <!-- HTML !-->
-        <button class="button" role="button" type="submit">Submit</button>
+        <button id="submit-btn" class="button" role="button" type="submit">Submit</button>
+        <span id="message" style="font-style: italic;"></span>
       </form>
     </div>
   </main>
   <script>
-    // const client = new URLSearchParams(window.location.search).get('client');
-    // if (!client) {
-    //   window.location.href = "/"
-    // }
+    const client = new URLSearchParams(window.location.search).get('client');
+    if (!client) {
+      window.location.href = "/"
+    }
 
-    // const API_BASE_URL = 'http://localhost:5000/api';
+    const API_BASE_URL = 'http://localhost:5000/api';
+    const getSsoClient = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/sso/client/${client}`)
+        if (!res.ok) {
+          window.location.href = "/"
+          return
+        }
+        const json = await res.json()
+        if (!json.success) {
+          window.location.href = "/"
+          return
+        }
+        console.log(json);
+        document.querySelector('.cover-img').src = json.data.backgroundUrl
+        document.querySelector('.form-title').innerText = json.data.title
+      } catch (error) {
+        window.location.href = "/"
+      }
+    }
+    const main = async () => {
+      getSsoClient()
+      document.querySelector('#myForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-    // document.querySelector('#myForm').addEventListener('submit', async (e) => {
-    //   e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
 
-    //   const username = document.getElementById('username').value;
-    //   const password = document.getElementById('password').value;
+        const submitButton = document.getElementById('submit-btn')
+        const messageElement = document.getElementById('message')
+        messageElement.innerText = ""
+        submitButton.innerText = "Please wait..."
+        submitButton.disabled = true
+        try {
+          const res = await fetch(`${API_BASE_URL}/sso/login`, {
+            method: 'POST',
+            body: JSON.stringify({
+              client,
+              username,
+              password,
+            }),
+          })
+          const response = await res.json();
+          if (!response.success) {
+            if (response.message === "INVALID_CLIENT") {
+              window.location.href = "/"
+            }
+            messageElement.innerText = response.message
+            submitButton.innerText = "Submit"
+            submitButton.disabled = false
+            return;
+          }
 
-    //   const res = await fetch(`${API_BASE_URL}/sso/login`, {
-    //     method: 'POST',
-    //     body: JSON.stringify({
-    //       client,
-    //       username,
-    //       password,
-    //     }),
-    //   })
-    //     .then((res) => res.json())
-    //     .then((response) => {
-    //       console.log('RES', response);
-    //       if (!response.success) {
-    //         if (response.message === "INVALID_CLIENT") {
-    //           window.location.href = "/"
-    //         }
-    //         return;
-    //       }
-    //       window.location.href = `${response.data.callback}?exchange=${response.data.exchange}`;
-    //     })
-    //     .catch((err) => {
-    //       console.log('ERROR', err);
-    //     });
-    // });
+          messageElement.innerText = "Success, please wait.."
+          setTimeout(() => {
+            window.location.href = `${response.data.callback}?exchange=${response.data.exchange}`;
+          }, 1000)
+        } catch (error) {
+          console.log('ERROR', error);
+          messageElement.innerText = "Failed to connect to server"
+          submitButton.innerText = "Submit"
+          submitButton.disabled = false
+        }
+      });
+    }
+    main()
   </script>
 </body>
 

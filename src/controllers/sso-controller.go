@@ -10,21 +10,38 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/go-chi/chi"
 )
 
 type SsoClient struct {
-	Id          string
-	CallbackUrl string
+	Id           string
+	CallbackUrl  string
+	Title        string
+	BackgroundUrl string
+}
+
+var ssoClients = map[string]*SsoClient{
+	"123": {
+		Id:           "123",
+		CallbackUrl:  "https://www.google.com/hehe",
+		Title:        "PT Jaya Makmur",
+		BackgroundUrl: "https://picsum.photos/640/360",
+	},
+}
+
+func (me *Controller) getSsoClient(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	client := ssoClients[id]
+	if client == nil {
+		sendBadRequestResponse(w, "NOT_FOUND")
+		return
+	}
+
+	sendSuccessResponse(w, client)
 }
 
 func (me *Controller) ssoLogin(w http.ResponseWriter, r *http.Request) {
-	ssoClients := map[string]*SsoClient{
-		"123": {
-			Id:          "123",
-			CallbackUrl: "https://www.google.com/hehe",
-		},
-	}
-
 	data := utils.GetBodyContext[dtos.SsoLoginPayload](r)
 
 	client := ssoClients[data.Client]
@@ -39,7 +56,7 @@ func (me *Controller) ssoLogin(w http.ResponseWriter, r *http.Request) {
 	`, data.Username)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			sendBadRequestResponse(w, "User is not found")
+			sendBadRequestResponse(w, "Username or password is wrong")
 			return
 		}
 		fmt.Println("ERR", err)

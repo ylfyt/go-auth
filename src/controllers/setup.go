@@ -128,6 +128,11 @@ func New(_db *sqlx.DB, _config *shared.EnvConf, _ssoService *services.SsoTokenSe
 					middlewares.BodyParser[dtos.SsoLoginPayload](),
 				},
 			},
+			{
+				Method:  "GET",
+				Path:    "/client/{id}",
+				Handler: controller.getSsoClient,
+			},
 		},
 	}
 
