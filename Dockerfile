@@ -1,4 +1,4 @@
-FROM golang:1.19
+FROM golang:1.23-alpine AS builder
 
 WORKDIR /app
 
@@ -7,6 +7,14 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o out
+RUN go build -o app
 
-CMD [ "./out" ]
+FROM alpine:latest
+
+WORKDIR /app
+
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/migrations ./migrations
+COPY --from=builder /app/app .
+
+CMD [ "./app" ]

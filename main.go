@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"go-auth/src/controllers"
 	"go-auth/src/services"
@@ -9,6 +10,9 @@ import (
 	"net/http"
 
 	"github.com/caarlos0/env/v9"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/sqlite"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
 	"github.com/json-iterator/go/extra"
 	_ "modernc.org/sqlite"
@@ -46,6 +50,16 @@ func main() {
 		panic(err)
 	}
 	defer db.Close()
+
+	if driver, err := sqlite.WithInstance(db.DB, &sqlite.Config{}); err != nil {
+		panic(err)
+	} else if m, err := migrate.NewWithDatabaseInstance("file://./migrations", "sqlite", driver); err != nil {
+		panic(err)
+	} else if err := m.Up(); err != nil {
+		if !errors.Is(err, migrate.ErrNoChange) {
+			panic(fmt.Errorf("cannot perform database migration: %+v", err))
+		}
+	}
 
 	ssoTokenService := services.NewSsoTokenService()
 	app := controllers.New(db, &config, ssoTokenService)
