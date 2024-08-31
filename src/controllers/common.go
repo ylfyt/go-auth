@@ -10,7 +10,7 @@ import (
 
 func GetErrorResponse(statusCode int, message string, errors ...dtos.FieldError) dtos.Response {
 	return dtos.Response{
-		Status:  statusCode,
+		Code:  statusCode,
 		Message: message,
 		Errors:  errors,
 		Success: false,
@@ -20,7 +20,7 @@ func GetErrorResponse(statusCode int, message string, errors ...dtos.FieldError)
 
 func sendResponse(w http.ResponseWriter, response dtos.Response) {
 	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(response.Status)
+	w.WriteHeader(response.Code)
 	err := jsoniter.ConfigCompatibleWithStandardLibrary.NewEncoder(w).Encode(response)
 	if err != nil {
 		fmt.Println("ERR", err)
@@ -43,7 +43,7 @@ func sendDefaultInternalErrorResponse(w http.ResponseWriter) {
 
 func GetSuccessResponse(data any) dtos.Response {
 	return dtos.Response{
-		Status:  http.StatusOK,
+		Code:  http.StatusOK,
 		Message: "",
 		Success: true,
 		Data:    data,

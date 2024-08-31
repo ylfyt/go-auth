@@ -11,7 +11,7 @@ import (
 	"github.com/caarlos0/env/v9"
 	"github.com/jmoiron/sqlx"
 	"github.com/json-iterator/go/extra"
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 func init() {
@@ -39,9 +39,9 @@ func main() {
 	}); err != nil {
 		panic(err)
 	}
-	fmt.Printf("Data: %+v\n", config)
+	fmt.Printf("Config: %+v\n", config)
 
-	db, err := sqlx.Open("sqlite3", config.DbConnection)
+	db, err := sqlx.Open("sqlite", config.DbConnection)
 	if err != nil {
 		panic(err)
 	}

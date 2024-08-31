@@ -31,7 +31,7 @@ func BodyParser[T any](opts ...BodyParserOption) func(http.Handler) http.Handler
 				w.Header().Add("content-type", "application/json")
 				w.WriteHeader(http.StatusBadRequest)
 				response := dtos.Response{
-					Status:  http.StatusBadRequest,
+					Code:  http.StatusBadRequest,
 					Message: "Payload is not valid",
 					Success: false,
 				}
@@ -48,7 +48,7 @@ func BodyParser[T any](opts ...BodyParserOption) func(http.Handler) http.Handler
 					w.Header().Add("content-type", "application/json")
 					w.WriteHeader(http.StatusBadRequest)
 					response := dtos.Response{
-						Status:  http.StatusBadRequest,
+						Code:  http.StatusBadRequest,
 						Message: "Payload is not valid",
 						Success: false,
 						Errors:  fieldErrors,

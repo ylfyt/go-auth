@@ -39,7 +39,7 @@ func Authorization(config *shared.EnvConf) func(next http.Handler) http.Handler 
 			w.Header().Add("content-type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
 			response := dtos.Response{
-				Status:  http.StatusUnauthorized,
+				Code:  http.StatusUnauthorized,
 				Message: "UNAUTHORIZED",
 				Success: false,
 			}

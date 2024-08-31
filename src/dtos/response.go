@@ -13,7 +13,7 @@ type FieldError struct {
 }
 
 type Response struct {
-	Status  int
+	Code    int
 	Message string
 	Success bool
 	Errors  []FieldError

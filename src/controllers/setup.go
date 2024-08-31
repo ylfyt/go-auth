@@ -115,8 +115,16 @@ func New(_db *sqlx.DB, _config *shared.EnvConf, _ssoService *services.SsoTokenSe
 				Path:    "/ping",
 				Handler: controller.ping,
 			},
+			{
+				Method: "GET",
+				Path:   "/login",
+				Handler: func(w http.ResponseWriter, r *http.Request) {
+					http.ServeFile(w, r, "public/login.html")
+				},
+			},
 		},
 	}
+
 	ssoRoute := Route{
 		Base: "/sso",
 		EndPoints: []EndPoint{
@@ -145,10 +153,13 @@ func New(_db *sqlx.DB, _config *shared.EnvConf, _ssoService *services.SsoTokenSe
 		},
 	}
 
-	routes := []Route{
+	publicRoutes := []Route{
+		homeRoute,
+	}
+
+	apiRoutes := []Route{
 		authRoute,
 		userRoute,
-		homeRoute,
 		ssoRoute,
 	}
 
@@ -158,12 +169,22 @@ func New(_db *sqlx.DB, _config *shared.EnvConf, _ssoService *services.SsoTokenSe
 		AllowedOrigins: []string{"*"},
 	}).Handler)
 
-	r.Get("/login", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "public/login.html")
+	r.Route("/", func(r chi.Router) {
+		for _, route := range publicRoutes {
+			r.Route(route.Base, func(r chi.Router) {
+				for _, endpoint := range route.EndPoints {
+					sub := r.Group(nil)
+					for _, mid := range endpoint.Middlewares {
+						sub.Use(mid)
+					}
+					sub.MethodFunc(endpoint.Method, endpoint.Path, endpoint.Handler)
+				}
+			})
+		}
 	})
 
 	r.Route("/api", func(r chi.Router) {
-		for _, route := range routes {
+		for _, route := range apiRoutes {
 			r.Route(route.Base, func(r chi.Router) {
 				for _, endpoint := range route.EndPoints {
 					sub := r.Group(nil)
