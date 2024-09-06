@@ -4,10 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"go-auth/src/controllers"
+	"go-auth/src/logger"
 	"go-auth/src/services"
 	"go-auth/src/shared"
 	"go-auth/src/utils"
 	"net/http"
+	"os"
 
 	"github.com/caarlos0/env/v9"
 	"github.com/golang-migrate/migrate/v4"
@@ -43,7 +45,12 @@ func main() {
 	}); err != nil {
 		panic(err)
 	}
-	fmt.Printf("Config: %+v\n", config)
+	// f, err := os.OpenFile("./test.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	l := logger.NewLogger(os.Stdout)
+	l.Df("Config: %+v", config)
 
 	db, err := sqlx.Open("sqlite", config.DbConnection)
 	if err != nil {
