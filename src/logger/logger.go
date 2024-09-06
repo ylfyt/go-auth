@@ -5,9 +5,24 @@ import (
 	"io"
 )
 
+type LoggerLevel int
+
+const (
+	LOG_DEBUG LoggerLevel = 0
+	LOG_INFO  LoggerLevel = 1
+)
+
+var levelMap = map[string]LoggerLevel{
+	"D": 0,
+	"I": 1,
+	"W": 2,
+	"E": 3,
+}
+
 type Logger struct {
-	f    io.Writer
-	buff chan string
+	f        io.Writer
+	buff     chan string
+	maxLevel LoggerLevel
 }
 
 type ILogger interface {
@@ -30,36 +45,44 @@ func (me *Logger) run() {
 
 func (me *Logger) R(id any) ILogger {
 	return &ctxLogger{
-		id:   id,
-		buff: me.buff,
+		id:       id,
+		buff:     me.buff,
+		maxLevel: me.maxLevel,
 	}
 }
 
 func (me *Logger) E(a ...any) {
-	me.buff <- builder("E", nil, sliceToString(a...))
+	me.append("E", sliceToString(a...))
 }
 
 func (me *Logger) Ef(format string, a ...any) {
-	me.buff <- builder("E", nil, fmt.Sprintf(format, a...))
+	me.append("E", fmt.Sprintf(format, a...))
 }
 func (me *Logger) I(a ...any) {
-	me.buff <- builder("I", nil, sliceToString(a...))
+	me.append("I", sliceToString(a...))
 }
 
 func (me *Logger) If(format string, a ...any) {
-	me.buff <- builder("I", nil, fmt.Sprintf(format, a...))
+	me.append("I", fmt.Sprintf(format, a...))
 }
 
 func (me *Logger) W(a ...any) {
-	me.buff <- builder("W", nil, sliceToString(a...))
+	me.append("W", sliceToString(a...))
 }
 func (me *Logger) Wf(format string, a ...any) {
-	me.buff <- builder("W", nil, fmt.Sprintf(format, a...))
+	me.append("W", fmt.Sprintf(format, a...))
 }
 
 func (me *Logger) D(a ...any) {
-	me.buff <- builder("D", nil, sliceToString(a...))
+	me.append("D", sliceToString(a...))
 }
 func (me *Logger) Df(format string, a ...any) {
-	me.buff <- builder("D", nil, fmt.Sprintf(format, a...))
+	me.append("D", fmt.Sprintf(format, a...))
+}
+
+func (me *Logger) append(level, message string) {
+	if levelMap[level] < me.maxLevel {
+		return
+	}
+	me.buff <- builder(level, nil, message)
 }

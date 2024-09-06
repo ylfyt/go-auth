@@ -7,10 +7,11 @@ import (
 	"time"
 )
 
-func NewLogger(f io.Writer) *Logger {
+func NewLogger(f io.Writer, level LoggerLevel) *Logger {
 	l := &Logger{
-		buff: make(chan string),
-		f:    f,
+		buff:     make(chan string),
+		f:        f,
+		maxLevel: level,
 	}
 	go l.run()
 
@@ -29,7 +30,7 @@ func sliceToString[T any](a ...T) string {
 }
 
 func builder(level string, id any, message string) string {
-	pc, _, line, _ := runtime.Caller(2)
+	pc, _, line, _ := runtime.Caller(3)
 	funcCaller := runtime.FuncForPC(pc)
 	funcName := ""
 	if funcCaller != nil {

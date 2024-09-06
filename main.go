@@ -49,8 +49,8 @@ func main() {
 	// if err != nil {
 	// 	panic(err)
 	// }
-	l := logger.NewLogger(os.Stdout)
-	l.Df("Config: %+v", config)
+	l := logger.NewLogger(os.Stdout, logger.LOG_INFO)
+	l.If("Config: %+v", config)
 
 	db, err := sqlx.Open("sqlite", config.DbConnection)
 	if err != nil {
