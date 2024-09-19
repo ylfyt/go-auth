@@ -15,6 +15,7 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/sqlite"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/json-iterator/go/extra"
 	_ "modernc.org/sqlite"
 )
@@ -44,12 +45,6 @@ func main() {
 	}); err != nil {
 		panic(err)
 	}
-	// f, err := os.OpenFile("./test.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	l := logger.NewLogger(logger.LOG_INFO)
-	l.If("Config: %+v", config)
 
 	db, err := sqlx.Open("sqlite", config.DbConnection)
 	if err != nil {
@@ -69,6 +64,11 @@ func main() {
 
 	ssoTokenService := services.NewSsoTokenService()
 	app := controllers.New(db, &config, ssoTokenService)
+
+	l := logger.NewLogger("./logs", "GO_AUTH", logger.LOG_INFO, false)
+	if res, _ := jsoniter.Marshal(config); true {
+		l.If("========== Listening on port %d with config: %s", config.ListenPort, res)
+	}
 
 	fmt.Println("Listening on port", config.ListenPort)
 	http.ListenAndServe(fmt.Sprintf(":%d", config.ListenPort), app)

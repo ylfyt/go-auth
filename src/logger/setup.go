@@ -3,30 +3,38 @@ package logger
 import (
 	"bufio"
 	"fmt"
-	"io"
 	"os"
 	"runtime"
 	"strings"
 	"time"
 )
 
-func NewLogger(level LoggerLevel) *Logger {
-	f, err := getLogFile("./logs", "MY")
-	if err != nil {
-		panic(err)
+func NewLogger(directory string, filename string, level LoggerLevel, stdout bool) *Logger {
+
+	writer := os.Stdout
+	if !stdout {
+		f, err := getLogFile(directory, filename)
+		if err != nil {
+			panic(err)
+		}
+		writer = f
 	}
 
 	l := &Logger{
-		buff:     make(chan string),
-		f:        f,
-		maxLevel: level,
+		buff:      make(chan string),
+		f:         writer,
+		maxLevel:  level,
+		ref:       time.Date(2024, 9, 18, 0, 0, 0, 0, time.UTC),
+		directory: directory,
+		filename:  filename,
+		stdout:    stdout,
 	}
 	go l.run()
 
 	return l
 }
 
-func getLogFile(dir string, currName string) (io.Writer, error) {
+func getLogFile(dir string, currName string) (*os.File, error) {
 	file, err := os.OpenFile(fmt.Sprintf("%s/%s.log", dir, currName), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
 		return nil, err

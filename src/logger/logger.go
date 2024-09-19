@@ -3,6 +3,7 @@ package logger
 import (
 	"fmt"
 	"io"
+	"time"
 )
 
 type LoggerLevel int
@@ -20,9 +21,13 @@ var levelMap = map[string]LoggerLevel{
 }
 
 type Logger struct {
-	f        io.Writer
-	buff     chan string
-	maxLevel LoggerLevel
+	f         io.Writer
+	buff      chan string
+	maxLevel  LoggerLevel
+	ref       time.Time
+	directory string
+	filename  string
+	stdout    bool
 }
 
 type ILogger interface {
@@ -36,9 +41,23 @@ type ILogger interface {
 	Df(format string, a ...any)
 }
 
+func (me *Logger) rotateFile() {
+	f, err := getLogFile(me.directory, me.filename)
+	if err != nil {
+		me.Ef("FAILED TO ROTATE LOG FILE %+v", err)
+		return
+	}
+	me.f = f
+	me.ref = time.Now()
+}
+
 func (me *Logger) run() {
 	for {
 		msg := <-me.buff
+		if !me.stdout && time.Now().Day() != me.ref.Day() {
+			me.rotateFile()
+		}
+
 		fmt.Fprintln(me.f, msg)
 	}
 }
