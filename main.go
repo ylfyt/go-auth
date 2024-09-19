@@ -9,7 +9,6 @@ import (
 	"go-auth/src/shared"
 	"go-auth/src/utils"
 	"net/http"
-	"os"
 
 	"github.com/caarlos0/env/v9"
 	"github.com/golang-migrate/migrate/v4"
@@ -49,7 +48,7 @@ func main() {
 	// if err != nil {
 	// 	panic(err)
 	// }
-	l := logger.NewLogger(os.Stdout, logger.LOG_INFO)
+	l := logger.NewLogger(logger.LOG_INFO)
 	l.If("Config: %+v", config)
 
 	db, err := sqlx.Open("sqlite", config.DbConnection)
