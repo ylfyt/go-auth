@@ -65,7 +65,7 @@ func main() {
 	ssoTokenService := services.NewSsoTokenService()
 	app := controllers.New(db, &config, ssoTokenService)
 
-	l := logger.NewLogger("./logs", "GO_AUTH", logger.LOG_INFO, false)
+	l := logger.NewLogger("./data/logs", "GO_AUTH", logger.LOG_INFO, false)
 	if res, _ := jsoniter.Marshal(config); true {
 		l.If("========== Listening on port %d with config: %s", config.ListenPort, res)
 	}
