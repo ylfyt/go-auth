@@ -13,6 +13,7 @@ FROM alpine:latest
 
 WORKDIR /app
 
+RUN mkdir ./data
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/migrations ./migrations
 COPY --from=builder /app/app .
