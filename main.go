@@ -67,9 +67,8 @@ func main() {
 
 	l := logger.NewLogger("./data/logs", "GO_AUTH", logger.LOG_INFO, false)
 	if res, _ := jsoniter.Marshal(config); true {
-		l.If("========== Listening on port %d with config: %s", config.ListenPort, res)
+		l.If("========== Listening on port %d with config: %s", config.Port, res)
+		fmt.Println("Listening on port", config.Port, "with config:", string(res))
 	}
-
-	fmt.Println("Listening on port", config.ListenPort)
-	http.ListenAndServe(fmt.Sprintf(":%d", config.ListenPort), app)
+	http.ListenAndServe(fmt.Sprintf(":%d", config.Port), app)
 }

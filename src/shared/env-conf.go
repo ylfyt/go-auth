@@ -1,7 +1,7 @@
 package shared
 
 type EnvConf struct {
-	ListenPort                int
+	Port                      int
 	DbConnection              string `json:"-"`
 	JwtAccessTokenExpiryTime  int    // in seconds
 	JwtAccessTokenSecretKey   string `json:"-"`
